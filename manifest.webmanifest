@@ -1,6 +1,6 @@
 {
-  "name": "El Rosco de Anabela",
-  "short_name": "El Rosco",
+  "name": "La Vuelta de Anabela",
+  "short_name": "La Vuelta",
   "description": "Juego familiar de preguntas en rosco, de la A a la Z.",
   "start_url": "./",
   "display": "standalone",

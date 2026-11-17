@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>El Rosco de Anabela</title>
+<title>La Vuelta de Anabela</title>
 <meta name="description" content="Juego familiar de preguntas en rosco, de la A a la Z, con conductora y micrófono.">
 <meta name="theme-color" content="#2a0f6b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="El Rosco">
+<meta name="apple-mobile-web-app-title" content="La Vuelta">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -143,7 +143,7 @@ tr.win td{color:var(--gold)}
 
 <!-- BIENVENIDA -->
 <section id="sWelcome" class="screen on">
-  <div class="logo"><div class="big">EL ROSCO</div><div class="sub">de Anabela</div></div>
+  <div class="logo"><div class="big">LA VUELTA</div><div class="sub">de Anabela</div></div>
   <div class="card host">
     <div class="avatar"><span>A</span></div>
     <div class="bubble"><small>Anabela · conductora</small><span id="welcomeTxt"></span></div>
@@ -198,7 +198,7 @@ tr.win td{color:var(--gold)}
 
 <!-- PRESENTACIÓN DE JUGADOR -->
 <section id="sIntro" class="screen">
-  <div class="logo"><div class="big" style="font-size:34px">EL ROSCO</div></div>
+  <div class="logo"><div class="big" style="font-size:34px">LA VUELTA</div><div class="sub">de Anabela</div></div>
   <div class="intro-sub" id="introNum"></div>
   <div class="intro-name" id="introName"></div>
   <div class="card host">
@@ -309,7 +309,7 @@ tr.win td{color:var(--gold)}
 </div>
 
 <script>
-const GAME_NAME = 'El Rosco de Anabela'; // ← cambiá acá el nombre del juego
+const GAME_NAME = 'La Vuelta de Anabela'; // ← cambiá acá el nombre del juego
 /* ================= BANCO DE PREGUNTAS =================
    t: 'E' = empieza con, 'C' = contiene. a: respuestas válidas (la primera es la principal) */
 const BANK = {
@@ -451,13 +451,31 @@ Z:[['E','Hortaliza naranja que comen los conejos',['zanahoria']],
 };
 const LETTERS = Object.keys(BANK);
 
-/* ================= FRASES DE LA PRESENTADORA ================= */
-const P = {
-  ok:['¡Correcto! Un punto.','¡Correctísimo! ¡Punto!','¡Bien ahí! Un punto más.','¡Eso! ¡Correcto!','¡Impecable! Un punto.'],
-  bad:['Incorrecto, seguimos con la siguiente letra.','¡Uy! Incorrecto. Seguimos.','No es esa… seguimos adelante.','Incorrecto. ¡Pero no se me desanimen!'],
-  pass:['¡Paso! La dejamos pendiente.','¡Pasamos! Volvemos después.','Paso… ¡la guardamos para la vuelta!'],
-  time:['¡Se acabó el tiempo! Perdemos la letra.','¡Tiempo! Esa letra se nos fue.']
+/* ================= VOZ GRABADA DE ANABELA =================
+   Los audios F01.mp3 … F26.mp3 van al lado de index.html.
+   Si alguno no carga, Anabela dice ese texto con la voz del celular. */
+const CLIP_TXT = {
+  F01:'¡Buenas noches y bienvenidos a La Vuelta de Anabela! Soy Anabela, su conductora. Cada jugador tiene su rosco, quince segundos por pregunta y tres comodines. ¿Están listos? ¡Que empiece el show!',
+  F02:'¡Comenzamos con el primer jugador! El rosco está listo, el reloj también… ¡Comenzamos!',
+  F03:'¡Le toca al próximo jugador! ¿Preparados? ¡Comenzamos!',
+  F04:'¡Que pase el próximo jugador! El reloj ya está corriendo… ¡Vamos!',
+  F05:'¡Correcto! Un punto.', F06:'¡Correctísimo! ¡Punto!', F07:'¡Bien ahí! Un punto más.',
+  F08:'Incorrecto, seguimos con la siguiente letra.', F09:'¡Uy! Incorrecto. Seguimos.', F10:'No es esa… ¡pero no se me desanimen!',
+  F11:'¡Paso! La dejamos pendiente.', F12:'¡Pasamos! Volvemos después.', F13:'Paso en la última vuelta… esa letra queda sin responder.',
+  F14:'¡Se acabó el tiempo! Perdemos la letra.', F15:'¡Tiempo! Esa letra se nos fue.',
+  F16:'¡Segunda vuelta! Vamos con las letras pendientes. ¡Última oportunidad!',
+  F17:'¡Comodín de pista!', F18:'¡Diez segundos extra!', F19:'¡Cambio de pregunta!',
+  F20:'¡Terminó el rosco! ¡Rosco espectacular, esto es nivel campeonato!',
+  F21:'¡Terminó el rosco! ¡Muy buen rosco, la tribuna está de pie!',
+  F22:'¡Terminó el rosco! ¡Buen trabajo, rosco peleado hasta el final!',
+  F23:'¡Terminó el rosco! Lo importante es competir… ¡y divertirse!',
+  F24:'¡Redoble de tambores! Después de roscos de infarto, el gran ganador de La Vuelta de Anabela es… ¡el que está en pantalla! ¡Un aplauso para todos!',
+  F25:'¡Increíble! ¡Tenemos empate en el primer puesto! ¡Habrá revancha! ¡Un aplauso para todos!',
+  F26:'¡Pausa! Aprovechen para tomar un mate.'
 };
+/* ================= FRASES DE LA PRESENTADORA ================= */
+const P = { ok:['F05','F06','F07'], bad:['F08','F09','F10'], pass:['F11','F12'], time:['F14','F15'] };
+const txt = k => CLIP_TXT[k] || k;
 const pick = a => a[Math.floor(Math.random()*a.length)];
 const COLORS = ['#ff5fa2','#4f86ff','#20c96b','#ffa62b','#b77bff'];
 
@@ -523,7 +541,7 @@ function pickedBrowserVoice(){ const v=$('voiceSel').value; return v&&v[0]==='b'
 let TTS=null, listening=false;
 try{loadVoice();}catch(e){}
 function avatarsTalk(on){ document.querySelectorAll('.avatar').forEach(a=>a.classList.toggle('talk',on)); }
-$('btnTestVoice').onclick=()=>say(`¡Hola! Soy Anabela, su conductora. ¡Bienvenidos a ${GAME_NAME}!`);
+$('btnTestVoice').onclick=()=>{ ensureCtx()&&actx.resume&&actx.resume(); seq(['F05','Empieza con A. Capital de Paraguay.']); };
 
 function say(text,cb){
   let done=false; const fin=()=>{if(!done){done=true;avatarsTalk(false);cb&&cb();}};
@@ -536,7 +554,36 @@ function say(text,cb){
     setTimeout(fin, Math.min(12000, 1500+text.length*75)); // por si el navegador no avisa
   }catch(e){fin()}
 }
-function shutUp(){try{speechSynthesis.cancel()}catch(e){} avatarsTalk(false);}
+let curSrc=null; const CLIPS={};
+function ensureCtx(){ try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} return actx; }
+async function loadClips(){
+  if(!ensureCtx()) return;
+  await Promise.all(Object.keys(CLIP_TXT).map(async k=>{
+    try{ const r=await fetch(k+'.mp3'); if(!r.ok) return; const buf=await r.arrayBuffer();
+      CLIPS[k]=await new Promise((res,rej)=>actx.decodeAudioData(buf,res,rej)); }catch(e){}
+  }));
+  const n=Object.keys(CLIPS).length;
+  $('voiceNote').textContent = n ? `🎙️ Voz de Anabela cargada (${n} frases grabadas). Las preguntas las lee la voz del celular.` : $('voiceNote').textContent;
+}
+loadClips();
+function playClip(k,cb){
+  let done=false; const fin=()=>{ if(!done){ done=true; avatarsTalk(false); cb&&cb(); } };
+  if(!$('optVoice').checked){ setTimeout(fin,cb?350:0); return; }
+  const b=CLIPS[k];
+  if(!b||!actx){ say(txt(k),cb); return; }
+  try{ actx.resume&&actx.resume(); stopClip(); const s=actx.createBufferSource(); s.buffer=b; s.connect(actx.destination);
+    s.onended=fin; curSrc=s; avatarsTalk(true); s.start(); setTimeout(fin,(b.duration+1.5)*1000);
+  }catch(e){ say(txt(k),cb); }
+}
+function stopClip(){ if(curSrc){ const s=curSrc; curSrc=null; try{s.stop()}catch(e){} } }
+/* dice una lista de cosas en orden: códigos de frase grabada (F05) o texto para la voz del celular */
+function seq(items,cb){
+  items=items.filter(Boolean);
+  const next=()=>{ if(!items.length){ cb&&cb(); return; } const it=items.shift();
+    if(CLIP_TXT[it]) playClip(it,next); else say(it,next); };
+  next();
+}
+function shutUp(){try{speechSynthesis.cancel()}catch(e){} stopClip(); avatarsTalk(false);}
 
 /* ================= MICRÓFONO DEL CELULAR =================
    Usa el reconocimiento de voz del navegador (Chrome en Android, Safari en iPhone).
@@ -656,14 +703,13 @@ function introPlayer(){
   $('introNum').textContent = `Participante ${S.idx+1} de ${players.length}`;
   $('introName').textContent = p.name;
   $('introName').style.color = COLORS[S.idx];
-  const lista = S.idx===0 ? `¡Bienvenidos a ${GAME_NAME}! Esta noche compiten ${listNames()}. Comenzamos con ${p.name}.` : pick([`¡Turno de ${p.name}!`,`¡Ahora le toca a ${p.name}!`,`¡Que pase ${p.name}!`]);
   const prep = p.f?'Preparada':'Preparado';
-  const t = `${lista} El rosco está listo, el reloj también. ${prep}…`;
-  $('introTxt').textContent = t;
+  const clips = S.idx===0 ? ['F01','F02'] : [pick(['F03','F04'])];
+  $('introTxt').textContent = clips.map(txt).join(' ');
   $('btnReady').textContent = `¡${prep}! ▶`;
-  show('sIntro'); say(t);
+  show('sIntro'); seq(clips);
 }
-$('btnReady').onclick=()=>{ say('¡Comenzamos!'); startRosco(); };
+$('btnReady').onclick=()=>{ shutUp(); ensureCtx()&&actx.resume&&actx.resume(); startRosco(); };
 
 /* ================= JUEGO ================= */
 let G=null, timerId=null;
@@ -691,13 +737,12 @@ function updateTop(){
 }
 function nextLetter(pre=''){
   clearInterval(timerId);
-  pre = pre ? pre+' ' : '';
   if(G.queue.length===0){
     if(G.vuelta===1 && G.pending.length){
       G.vuelta=2; G.queue=G.pending; G.pending=[]; updateTop();
       const n=G.queue.length;
-      const t=pre+`¡Segunda vuelta! Quedan ${n} letra${n>1?'s':''} pendiente${n>1?'s':''}. ¡Última oportunidad!`;
-      flash('2ª VUELTA','#7a55ff'); setQ('',t); say(t,()=>setTimeout(()=>nextLetter(),150)); return;
+      flash('2ª VUELTA','#7a55ff'); setQ('',`¡Segunda vuelta! Quedan ${n} letra${n>1?'s':''} pendiente${n>1?'s':''}. ¡Última oportunidad!`);
+      seq([pre,'F16'],()=>setTimeout(()=>{ if(G&&!G.paused) nextLetter(); else if(G){ G.resumeNext=true; G.pre=''; } },150)); return;
     }
     return endRosco(pre);
   }
@@ -711,7 +756,7 @@ function nextLetter(pre=''){
   updateTop(); setButtons(false);
   G.time=15; drawTime();
   G.busy=true;
-  say(`${pre}${tipo}. ${q.q}`, ()=>{ if(!G||G.paused) return; G.busy=false; setButtons(true); startTimer(); handsFree(); });
+  seq([pre,`${tipo}. ${q.q}`], ()=>{ if(!G||G.paused) return; G.busy=false; setButtons(true); startTimer(); handsFree(); });
 }
 function setQ(tipo,txt){ $('gType').style.display=tipo?'inline-block':'none'; $('gType').textContent=tipo; $('gQ').textContent=txt; }
 function setButtons(on){ ['btnAnswer','btnPass','btnMic'].forEach(id=>$(id).disabled=!on);
@@ -739,9 +784,9 @@ function resolve(kind,alts){
     else { G.bad++; G.state[L]='bad'; el.className='letter bad'; sfx.bad(); flash('INCORRECTO','#ff4057'); msg=pick(P.bad); }
   } else if(kind==='pass'){
     if(G.vuelta===1){ G.pending.push(L); G.state[L]='pass'; el.className='letter pass'; sfx.pass(); flash('¡PASO!','#ff8a1f'); msg=pick(P.pass); }
-    else { G.state[L]='none'; el.className='letter'; el.style.opacity=.35; sfx.pass(); flash('¡PASO!','#ff8a1f'); msg='Paso en la última vuelta… esa letra queda sin responder.'; }
+    else { G.state[L]='none'; el.className='letter'; el.style.opacity=.35; sfx.pass(); flash('¡PASO!','#ff8a1f'); msg='F13'; }
   } else { G.bad++; G.state[L]='bad'; el.className='letter bad'; sfx.bad(); flash('¡TIEMPO!','#ff4057'); msg=pick(P.time); }
-  G.cur=null; updateTop(); setQ('',msg);
+  G.cur=null; updateTop(); setQ('',txt(msg));
   setTimeout(()=>{ if(G&&!G.paused){ nextLetter(msg); } else if(G){ G.resumeNext=true; G.pre=msg; } },650);
 }
 function flash(t,c){ const f=$('flash'); f.innerHTML=`<div style="background:${c}">${t}</div>`; setTimeout(()=>f.innerHTML='',950); }
@@ -751,13 +796,13 @@ $('btnAnswer').onclick=()=>resolve('answer');
 $('btnPass').onclick=()=>resolve('pass');
 $('cHint').onclick=()=>{ if(!G.com.hint) return; G.com.hint=false; $('cHint').disabled=true;
   const a=G.q[G.cur].a[0]; const shown=a.split('').map((ch,i)=>ch===' '?'  ':(i<2?ch.toUpperCase():'_')).join(' ');
-  $('gHint').textContent=`💡 ${shown}  (${a.replace(/ /g,'').length} letras)`; say('¡Comodín de pista!'); };
-$('cTime').onclick=()=>{ if(!G.com.time) return; G.com.time=false; $('cTime').disabled=true; G.time+=10; drawTime(); say('¡Diez segundos extra!'); };
+  $('gHint').textContent=`💡 ${shown}  (${a.replace(/ /g,'').length} letras)`; playClip('F17'); };
+$('cTime').onclick=()=>{ if(!G.com.time) return; G.com.time=false; $('cTime').disabled=true; G.time+=10; drawTime(); playClip('F18'); };
 $('cSwap').onclick=()=>{ const sp=S.spare[G.cur]; if(!G.com.swap||!sp||!sp.length) return;
   G.com.swap=false; clearInterval(timerId); setButtons(false); G.q[G.cur]=sp.pop();
   const q=G.q[G.cur]; const tipo=q.t==='E'?`Empieza con ${G.cur}`:`Contiene la ${G.cur}`;
   setQ(tipo,q.q); $('gHint').textContent=''; G.time=15; drawTime(); G.busy=true;
-  say(`¡Cambio de pregunta! ${tipo}. ${q.q}`,()=>{ if(G.paused) return; G.busy=false; setButtons(true); startTimer(); handsFree(); }); };
+  seq(['F19',`${tipo}. ${q.q}`],()=>{ if(G.paused) return; G.busy=false; setButtons(true); startTimer(); handsFree(); }); };
 
 /* altavoz y repetir */
 function paintSpeaker(){ $('btnSpeaker').textContent = $('optVoice').checked ? '🔊 Altavoz: ON' : '🔇 Altavoz: OFF'; }
@@ -767,8 +812,8 @@ $('btnRepeat').onclick=()=>{ if(!G||!G.cur||G.busy) return; const q=G.q[G.cur];
   if(!$('optVoice').checked){ $('optVoice').checked=true; paintSpeaker(); }
   say(`${q.t==='E'?'Empieza con '+G.cur:'Contiene la '+G.cur}. ${q.q}`); };
 /* pausa */
-$('btnPause').onclick=()=>{ if(!G) return; G.paused=true; shutUp(); stopRec(); $('mPause').classList.add('on'); };
-$('btnResume').onclick=()=>{ $('mPause').classList.remove('on'); G.paused=false;
+$('btnPause').onclick=()=>{ if(!G) return; G.paused=true; shutUp(); stopRec(); $('mPause').classList.add('on'); playClip('F26'); };
+$('btnResume').onclick=()=>{ shutUp(); $('mPause').classList.remove('on'); G.paused=false;
   if(G.resumeNext){ G.resumeNext=false; nextLetter(G.pre||''); G.pre=''; return; }
   if(G.cur && G.busy){ G.busy=false; setButtons(true); startTimer(); handsFree(); } };
 $('btnQuit').onclick=()=>{ $('mPause').classList.remove('on'); clearInterval(timerId); shutUp(); stopRec(); G=null; show('sWelcome'); };
@@ -781,12 +826,12 @@ function endRosco(pre=''){
   $('reName').textContent=p.name; $('reName').style.color=COLORS[S.idx];
   $('rePts').textContent=G.ok; $('reOk').textContent=G.ok; $('reBad').textContent=G.bad; $('reNo').textContent=no;
   const pct=G.ok/LETTERS.length;
-  const coment = pct>=.85?'¡Rosco espectacular! Esto es nivel campeonato.':pct>=.65?'¡Muy buen rosco! La tribuna está de pie.':pct>=.4?'¡Buen trabajo! Rosco peleado hasta el final.':'¡Lo importante es competir! Y divertirse, que para eso estamos.';
-  const t=`¡Terminó el rosco de ${p.name}! ${G.ok} punto${G.ok===1?'':'s'}. ${coment}`;
+  const ck = pct>=.85?'F20':pct>=.65?'F21':pct>=.4?'F22':'F23';
+  const t=`${txt(ck)} ${p.name} hizo ${G.ok} punto${G.ok===1?'':'s'}.`;
   $('reTxt').textContent=t; $('reTable').innerHTML=tableHTML(false);
   const last = S.idx===players.length-1;
   $('btnNext').textContent = last?'🏆 Ver la gran final':`▶ Siguiente: ${players[S.idx+1].name}`;
-  show('sRoscoEnd'); sfx.fanfare(); say((pre?pre+' ':'')+t); G=null;
+  show('sRoscoEnd'); sfx.fanfare(); seq([pre,ck]); G=null;
 }
 $('btnNext').onclick=()=>{ shutUp(); S.idx++; if(S.idx<players.length) introPlayer(); else finale(); };
 
@@ -804,10 +849,11 @@ function tableHTML(final){
 function finale(){
   const r=ranking(); const top=r.filter(x=>x.ok===r[0].ok&&x.bad===r[0].bad);
   let t,w;
-  if(top.length===1){ w=`🏆 ¡${top[0].name}!`; t=`¡Redoble de tambores! Después de ${S.results.length} roscos de infarto… con ${top[0].ok} puntos, la gran ganadora o ganador de ${GAME_NAME} es… ¡${top[0].name}! ¡Un aplauso para todos!`; }
-  else { const n=top.map(x=>x.name).join(' y '); w=`🏆 ¡Empate: ${n}!`; t=`¡Increíble! Tenemos empate en el primer puesto con ${top[0].ok} puntos: ¡${n}! Para desempatar… ¡revancha! ¡Un aplauso para todos!`; }
+  let ck;
+  if(top.length===1){ ck='F24'; w=`🏆 ¡${top[0].name}!`; t=`${txt(ck)} Con ${top[0].ok} puntos: ¡${top[0].name}!`; }
+  else { ck='F25'; const n=top.map(x=>x.name).join(' y '); w=`🏆 ¡Empate: ${n}!`; t=`${txt(ck)} Empatan con ${top[0].ok} puntos: ¡${n}!`; }
   $('fTxt').textContent=t; $('fWinner').textContent=w; $('fTable').innerHTML=tableHTML(true);
-  show('sFinal'); sfx.fanfare(); setTimeout(()=>sfx.fanfare(),700); confetti(); say(t);
+  show('sFinal'); sfx.fanfare(); setTimeout(()=>sfx.fanfare(),700); confetti(); seq([ck]);
 }
 function confetti(){ const cols=['#ffd84a','#ff5fa2','#4f86ff','#20c96b','#ffa62b','#fff'];
   for(let i=0;i<120;i++){ const c=document.createElement('div'); c.className='confetti';
@@ -818,7 +864,7 @@ function confetti(){ const cols=['#ffd84a','#ff5fa2','#4f86ff','#20c96b','#ffa62
 /* ================= ARRANQUE ================= */
 $('btnStart').onclick=()=>{
   try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)(); actx.resume(); }catch(e){}
-  newGame(); S.idx=0; introPlayer();
+  ensureCtx()&&actx.resume&&actx.resume(); newGame(); S.idx=0; introPlayer();
 };
 $('btnAgain').onclick=()=>{ shutUp(); show('sWelcome'); };
 </script>
