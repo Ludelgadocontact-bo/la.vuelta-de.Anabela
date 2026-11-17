@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>El Rosco de Anabela</title>
+<meta name="description" content="Juego familiar de preguntas en rosco, de la A a la Z, con conductora y micrófono.">
+<meta name="theme-color" content="#2a0f6b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="El Rosco">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg1:#120a3a; --bg2:#2a0f6b; --card:rgba(255,255,255,.08); --line:rgba(255,255,255,.16);
+  --blue:#2f6bff; --green:#20c96b; --red:#ff4057; --orange:#ffa62b; --gold:#ffd84a; --txt:#fff; --muted:#c9c3ef;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Nunito',system-ui,sans-serif;color:var(--txt);
+  background:radial-gradient(circle at 50% 0%,#4b1fb0 0%,var(--bg2) 35%,var(--bg1) 100%) fixed;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  -webkit-tap-highlight-color:transparent;
+}
+.wrap{max-width:760px;margin:0 auto;padding:14px 14px 40px;min-height:100%}
+h1,h2,h3,.title{font-family:'Baloo 2',cursive;letter-spacing:.5px}
+.screen{display:none;animation:fade .35s ease}
+.screen.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.logo{text-align:center;margin:10px 0 6px}
+.logo .big{font-family:'Baloo 2';font-weight:800;font-size:clamp(38px,9vw,64px);line-height:.95;
+  background:linear-gradient(180deg,#fff 0%,#ffe680 55%,#ffb21e 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 30px rgba(255,200,60,.25)}
+.logo .sub{display:inline-block;margin-top:6px;background:var(--blue);padding:4px 14px;border-radius:999px;font-weight:800;font-size:14px;letter-spacing:2px;text-transform:uppercase}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin:12px 0;backdrop-filter:blur(6px)}
+.host{display:flex;gap:12px;align-items:flex-start}
+.avatar{flex:0 0 52px;height:52px;border-radius:50%;background:conic-gradient(var(--gold),#ff7a3d,#d03bff,var(--blue),var(--gold));
+  display:grid;place-items:center;font-family:'Baloo 2';font-weight:800;font-size:24px;box-shadow:0 0 0 3px rgba(255,255,255,.2)}
+.avatar span{background:#1c0f55;width:42px;height:42px;border-radius:50%;display:grid;place-items:center}
+.bubble{flex:1;background:#fff;color:#1c1446;border-radius:16px;border-top-left-radius:4px;padding:12px 14px;font-size:17px;line-height:1.35;font-weight:700;min-height:52px}
+.bubble small{display:block;font-size:12px;font-weight:800;color:#7a55ff;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.rules{list-style:none;display:grid;gap:8px;font-size:15px}
+.rules li{display:flex;gap:8px}
+.rules b{color:var(--gold)}
+.players{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pl{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.2);border-radius:14px;padding:8px}
+.pl .dot{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;flex:0 0 30px}
+.pl input{width:100%;background:transparent;border:none;color:#fff;font:700 16px 'Nunito';outline:none;border-bottom:1px dashed rgba(255,255,255,.3)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{font-family:'Baloo 2';font-weight:800;font-size:19px;border:none;border-radius:16px;padding:13px 20px;color:#fff;cursor:pointer;
+  background:linear-gradient(180deg,#4f86ff,#2554e0);box-shadow:0 5px 0 #173a9e;transition:transform .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #173a9e}
+.btn.gold{background:linear-gradient(180deg,#ffe066,#ffb21e);color:#3a2300;box-shadow:0 5px 0 #b87700}
+.btn.orange{background:linear-gradient(180deg,#ffb84d,#ff8a1f);box-shadow:0 5px 0 #b35500}
+.btn.ghost{background:rgba(255,255,255,.12);box-shadow:none;font-size:15px;padding:10px 14px}
+.btn:disabled{opacity:.35;pointer-events:none}
+.btn.wide{width:100%}
+.toggle{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:var(--muted)}
+.toggle input{width:20px;height:20px;accent-color:var(--gold)}
+
+/* juego */
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
+.who{font-family:'Baloo 2';font-weight:800;font-size:22px}
+.vuelta{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.score{display:flex;gap:6px}
+.chip{border-radius:12px;padding:5px 10px;font-weight:800;font-size:15px;background:rgba(0,0,0,.25)}
+.chip.g{color:#6dffab}.chip.r{color:#ff8b98}.chip.o{color:#ffc67a}
+.rosco{position:relative;width:min(92vw,400px);aspect-ratio:1;margin:6px auto 0}
+.letter{position:absolute;width:11%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;
+  font-family:'Baloo 2';font-weight:800;font-size:clamp(13px,3.6vw,19px);transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 35% 30%,#6f9bff,var(--blue));box-shadow:inset 0 -3px 0 rgba(0,0,0,.25);transition:all .25s}
+.letter.ok{background:radial-gradient(circle at 35% 30%,#7dffb5,var(--green))}
+.letter.bad{background:radial-gradient(circle at 35% 30%,#ff8a98,var(--red))}
+.letter.pass{background:radial-gradient(circle at 35% 30%,#ffd18a,var(--orange))}
+.letter.cur{transform:translate(-50%,-50%) scale(1.3);box-shadow:0 0 0 3px #fff,0 0 22px 6px rgba(255,216,74,.8);z-index:2}
+.center{position:absolute;inset:18%;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(circle,#2b1880,#170b4a);box-shadow:inset 0 0 30px rgba(0,0,0,.5)}
+.timer{font-family:'Baloo 2';font-weight:800;font-size:clamp(48px,15vw,78px);line-height:1}
+.timer.warn{color:var(--red);animation:pulse .5s infinite alternate}
+@keyframes pulse{to{transform:scale(1.08)}}
+.ring{position:absolute;inset:-4px;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:6;stroke-linecap:round}
+.curL{font-size:14px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.qbox{margin-top:12px}
+.qtype{display:inline-block;background:var(--gold);color:#3a2300;font-weight:800;font-size:13px;border-radius:999px;padding:3px 10px;margin-bottom:6px;text-transform:uppercase}
+.answer{display:flex;gap:8px;margin-top:10px}
+.answer input{flex:1;min-width:0;font:700 18px 'Nunito';padding:12px 14px;border-radius:14px;border:2px solid transparent;outline:none;background:#fff;color:#1c1446}
+.answer input:focus{border-color:var(--gold)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.comodines{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.com{background:rgba(255,255,255,.1);border:1px solid var(--line);color:#fff;border-radius:12px;padding:8px 10px;font:800 14px 'Nunito';cursor:pointer}
+.com:disabled{opacity:.3;text-decoration:line-through}
+.hint{margin-top:8px;font-weight:800;color:var(--gold);font-size:16px;letter-spacing:2px;min-height:20px;text-align:center}
+.flash{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:50}
+.flash div{font-family:'Baloo 2';font-weight:800;font-size:clamp(34px,10vw,64px);padding:10px 28px;border-radius:24px;animation:pop .9s ease forwards}
+@keyframes pop{0%{transform:scale(.4);opacity:0}25%{transform:scale(1.1);opacity:1}75%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:0}}
+.mini{display:flex;gap:6px;justify-content:center;margin:4px 0 8px;flex-wrap:wrap}
+.mini span{font-size:12px;font-weight:800;border-radius:999px;padding:3px 9px;background:rgba(0,0,0,.25)}
+.mini span.now{background:var(--gold);color:#3a2300}
+
+/* tablas */
+.big-num{font-family:'Baloo 2';font-weight:800;font-size:64px;text-align:center;line-height:1;color:var(--gold)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;margin-top:10px}
+.stats div{background:rgba(0,0,0,.2);border-radius:14px;padding:10px 4px;font-weight:800}
+.stats b{display:block;font-family:'Baloo 2';font-size:28px}
+table{width:100%;border-collapse:collapse;font-size:16px}
+th{font-size:12px;text-transform:uppercase;color:var(--muted);letter-spacing:1px;text-align:left;padding:6px 4px}
+td{padding:10px 4px;border-top:1px solid var(--line);font-weight:700}
+td.n{text-align:center}
+tr.win td{color:var(--gold)}
+.medal{font-size:22px}
+.winner{text-align:center;font-family:'Baloo 2';font-weight:800;font-size:clamp(30px,8vw,48px);line-height:1.05;margin:6px 0;
+  background:linear-gradient(180deg,#fff,#ffd84a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.confetti{position:fixed;top:-20px;width:10px;height:14px;z-index:40;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+.center-txt{text-align:center}
+.mt{margin-top:12px}
+.intro-name{font-family:'Baloo 2';font-weight:800;font-size:clamp(44px,13vw,80px);text-align:center;line-height:1;margin:20px 0 6px}
+.intro-sub{text-align:center;color:var(--muted);font-weight:800;letter-spacing:2px;text-transform:uppercase}
+.sel{width:100%;font:700 16px 'Nunito';padding:11px 12px;border-radius:12px;border:none;background:#fff;color:#1c1446}
+.sel{font:700 15px 'Nunito';padding:8px 10px;border-radius:10px;border:none;background:#fff;color:#1c1446}
+.note{font-size:13px;color:var(--muted);font-weight:700;margin-top:10px}
+.mic{width:100%;margin-top:10px;font-size:24px;padding:18px;border-radius:999px;background:linear-gradient(180deg,#ff6b8a,#e0264f);box-shadow:0 5px 0 #8f1230}
+.mic.live{background:linear-gradient(180deg,#20c96b,#11954d);box-shadow:0 5px 0 #0b6233;animation:micp 1s infinite}
+@keyframes micp{50%{filter:brightness(1.25)}}
+.avatar.talk{animation:talk .6s infinite alternate}
+@keyframes talk{to{box-shadow:0 0 0 6px rgba(255,216,74,.55),0 0 24px rgba(255,216,74,.6)}}
+.live-badge{display:inline-block;font-size:11px;font-weight:800;background:#e0264f;border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:middle}
+.kbtip{display:none;margin-top:10px;background:#20c96b;color:#062b16;border-radius:14px;padding:10px 12px;font-weight:800;font-size:15px;text-align:center;line-height:1.35}
+.kbtip.on{display:block;animation:micp 1s infinite}
+.modal{position:fixed;inset:0;background:rgba(10,5,30,.8);display:none;place-items:center;z-index:60;padding:20px}
+.modal.on{display:grid}
+.modal .card{max-width:420px;width:100%;background:#24125f}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- BIENVENIDA -->
+<section id="sWelcome" class="screen on">
+  <div class="logo"><div class="big">EL ROSCO</div><div class="sub">de Anabela</div></div>
+  <div class="card host">
+    <div class="avatar"><span>A</span></div>
+    <div class="bubble"><small>Anabela · conductora</small><span id="welcomeTxt"></span></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:8px">📜 Reglas del juego</h3>
+    <ul class="rules">
+      <li>🔵 <span>Cada jugador tiene su <b>rosco de la A a la Z</b>, con preguntas distintas.</span></li>
+      <li>⏱️ <span><b>15 segundos</b> por pregunta. Si se acaba el tiempo, la letra se pierde.</span></li>
+      <li>✅ <span>Acierto = <b>1 punto</b>. Error = se pierde la letra (y no se revela la respuesta 🤫).</span></li>
+      <li>🟠 <span><b>¡Paso!</b>: la letra queda pendiente para la <b>segunda vuelta</b>.</span></li>
+      <li>🚫 <span>No hay rebote: nadie puede responder por otro.</span></li>
+      <li>🃏 <span>Comodines por jugador: <b>Pista</b>, <b>+10 segundos</b> y <b>Cambiar pregunta</b> (uno de cada).</span></li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:10px">👨‍👩‍👧‍👦 Participantes</h3>
+    <div class="players" id="playersEdit"></div>
+    <div class="row mt">
+      <button class="btn ghost" id="btnAddP" type="button">➕ Agregar jugador</button>
+      <button class="btn ghost" id="btnDelP" type="button">➖ Quitar último</button>
+    </div>
+    <div class="row mt">
+      <label class="toggle"><input type="checkbox" id="optSound" checked> Sonidos</label>
+    </div>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:10px">🎙️ Voz de la presentadora</h3>
+    <label class="toggle" style="margin-bottom:10px"><input type="checkbox" id="optVoice" checked> Anabela conduce en voz alta</label>
+    <select id="voiceSel" class="sel"></select>
+    <div class="row mt">
+      <span class="toggle" style="min-width:90px">Velocidad</span>
+      <input type="range" id="voiceRate" min="0.8" max="1.4" step="0.05" value="1.05" style="flex:1;accent-color:var(--gold)">
+    </div>
+    <div class="row mt">
+      <span class="toggle" style="min-width:90px">Tono</span>
+      <input type="range" id="voicePitch" min="0.6" max="1.6" step="0.05" value="1.12" style="flex:1;accent-color:var(--gold)">
+    </div>
+    <button class="btn ghost wide mt" id="btnTestVoice">🔊 Probar voz</button>
+    <p id="voiceNote" style="font-size:13px;color:var(--muted);margin-top:8px;font-weight:700">La voz depende del celular. Para una voz más natural: en iPhone, Ajustes → Accesibilidad → Contenido leído → Voces → Español, y bajá una voz «Mejorada» o «Premium». En Android, instalá o actualizá «Servicios de voz de Google». En iPhone, sacá el modo silencio.</p>
+    <p class="note" id="micNote"></p>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:10px">🎤 Micrófono</h3>
+    <label class="toggle"><input type="checkbox" id="optHands" checked> Manos libres: Anabela escucha sola después de cada pregunta</label>
+    <button class="btn ghost wide mt" id="btnMicTest" type="button">🎤 Probar micrófono</button>
+    <p class="note" id="micTestOut"></p>
+    <p class="note">Para contestar decí la palabra. Para pasar decí <b style="color:#fff">«paso»</b>.</p>
+  </div>
+  <button class="btn gold wide" id="btnStart">🎬 ¡Que empiece el show!</button>
+</section>
+
+<!-- PRESENTACIÓN DE JUGADOR -->
+<section id="sIntro" class="screen">
+  <div class="logo"><div class="big" style="font-size:34px">EL ROSCO</div></div>
+  <div class="intro-sub" id="introNum"></div>
+  <div class="intro-name" id="introName"></div>
+  <div class="card host">
+    <div class="avatar"><span>A</span></div>
+    <div class="bubble"><small>Anabela · conductora</small><span id="introTxt"></span></div>
+  </div>
+  <p class="center-txt" style="color:var(--muted);font-weight:700;margin:8px 0 14px">Los demás: ¡silencio en la tribuna! No vale soplar 🤐</p>
+  <button class="btn gold wide" id="btnReady"></button>
+</section>
+
+<!-- JUEGO -->
+<section id="sGame" class="screen">
+  <div class="top">
+    <div><div class="who" id="gWho"></div><div class="vuelta" id="gVuelta"></div></div>
+    <div class="score">
+      <span class="chip g" id="gOk">✓ 0</span><span class="chip r" id="gBad">✗ 0</span><span class="chip o" id="gPass">↻ 0</span>
+    </div>
+  </div>
+  <div class="rosco" id="rosco">
+    <div class="center">
+      <svg class="ring" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" stroke="rgba(255,255,255,.1)"/><circle id="ringFg" cx="50" cy="50" r="47" stroke="#ffd84a" stroke-dasharray="295.3" stroke-dashoffset="0"/></svg>
+      <div class="curL" id="gCurL">Letra</div>
+      <div class="timer" id="gTimer">15</div>
+      <div class="curL">segundos</div>
+    </div>
+  </div>
+  <div class="card host qbox">
+    <div class="avatar"><span>A</span></div>
+    <div class="bubble"><small>Anabela · conductora</small><span class="qtype" id="gType"></span><div id="gQ"></div></div>
+  </div>
+  <div class="hint" id="gHint"></div>
+  <div class="kbtip" id="kbTip">🎤 Tocá el <b>micrófono del teclado</b> y decí tu respuesta.<br>Cuando termines de hablar, Anabela la evalúa sola.</div>
+  <form class="answer" id="ansForm" autocomplete="off">
+    <input id="ansIn" type="text" placeholder="Escribí tu respuesta…" autocapitalize="off" autocorrect="off" spellcheck="false">
+  </form>
+  <button class="btn mic" id="btnMic">🎤 Tocá para hablar</button>
+  <div class="actions">
+    <button class="btn" id="btnAnswer">Responder</button>
+    <button class="btn orange" id="btnPass">¡Paso! 👉</button>
+  </div>
+  <div class="comodines">
+    <button class="com" id="cHint">💡 Pista</button>
+    <button class="com" id="cTime">⏱️ +10 seg</button>
+    <button class="com" id="cSwap">🔄 Cambiar pregunta</button>
+  </div>
+  <div class="row mt" style="justify-content:center">
+    <button class="btn ghost" id="btnRepeat">🔁 Repetir pregunta</button>
+    <button class="btn ghost" id="btnSpeaker">🔊 Altavoz: ON</button>
+    <button class="btn ghost" id="btnRepeat">🔁 Repetir pregunta</button>
+    <button class="btn ghost" id="btnPause">⏸ Pausa</button>
+  </div>
+</section>
+
+<!-- FIN DE ROSCO -->
+<section id="sRoscoEnd" class="screen">
+  <div class="logo"><div class="big" style="font-size:34px">¡FIN DEL ROSCO!</div></div>
+  <div class="intro-name" id="reName" style="font-size:44px;margin-top:6px"></div>
+  <div class="big-num" id="rePts"></div>
+  <div class="center-txt" style="font-weight:800;color:var(--muted)">puntos</div>
+  <div class="stats">
+    <div style="color:#6dffab"><b id="reOk"></b>aciertos</div>
+    <div style="color:#ff8b98"><b id="reBad"></b>errores</div>
+    <div style="color:#ffc67a"><b id="reNo"></b>sin responder</div>
+  </div>
+  <div class="card host">
+    <div class="avatar"><span>A</span></div>
+    <div class="bubble"><small>Anabela · conductora</small><span id="reTxt"></span></div>
+  </div>
+  <div class="card" id="reTable"></div>
+  <button class="btn gold wide" id="btnNext"></button>
+</section>
+
+<!-- FINAL -->
+<section id="sFinal" class="screen">
+  <div class="logo"><div class="big" style="font-size:38px">🏆 GRAN FINAL 🏆</div></div>
+  <div class="card host">
+    <div class="avatar"><span>A</span></div>
+    <div class="bubble"><small>Anabela · conductora</small><span id="fTxt"></span></div>
+  </div>
+  <div class="winner" id="fWinner"></div>
+  <div class="card" id="fTable"></div>
+  <button class="btn gold wide" id="btnAgain">🔁 Jugar otra vez (preguntas nuevas)</button>
+</section>
+
+</div>
+
+<div class="flash" id="flash"></div>
+
+<div class="modal" id="mMic">
+  <div class="card center-txt">
+    <h2>🎤 Falta el permiso</h2>
+    <p style="margin:10px 0 16px;color:var(--muted);font-weight:700;line-height:1.45">El celular no dejó usar el micrófono.<br><br>
+    <b style="color:#fff">Android (Chrome):</b> tocá el candado 🔒 al lado de la dirección → Permisos → Micrófono → Permitir.<br><br>
+    <b style="color:#fff">iPhone (Safari):</b> tocá «aA» en la barra de direcciones → Configuración del sitio web → Micrófono → Permitir. También tiene que estar activado Siri y Dictado.<br><br>
+    Después recargá la página. Mientras tanto, se puede escribir la respuesta. ✍️</p>
+    <button class="btn gold" id="btnMicOk">Entendido</button>
+  </div>
+</div>
+<div class="modal" id="mPause">
+  <div class="card center-txt">
+    <h2>⏸ Pausa</h2>
+    <p style="margin:10px 0 16px;color:var(--muted);font-weight:700">El reloj está detenido. ¡Aprovechen para tomar un mate! 🧉</p>
+    <div class="row" style="justify-content:center">
+      <button class="btn gold" id="btnResume">▶ Seguir</button>
+      <button class="btn ghost" id="btnQuit">Terminar partida</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const GAME_NAME = 'El Rosco de Anabela'; // ← cambiá acá el nombre del juego
+/* ================= BANCO DE PREGUNTAS =================
+   t: 'E' = empieza con, 'C' = contiene. a: respuestas válidas (la primera es la principal) */
+const BANK = {
+A:[['E','Capital de Paraguay',['asuncion']],
+   ['E','Río más caudaloso del mundo, atraviesa Brasil',['amazonas']],
+   ['E','Insecto que produce miel',['abeja']],
+   ['E','Selección que ganó el Mundial de Qatar 2022',['argentina']],
+   ['E','Prócer uruguayo, conocido como el Jefe de los Orientales',['artigas','jose artigas','jose gervasio artigas']]],
+B:[['E','Instrumento de fuelle emblema del tango',['bandoneon']],
+   ['E','Capital de Brasil',['brasilia']],
+   ['E','Club español donde Messi jugó más de quince años',['barcelona','barca']],
+   ['E','Animal marino que es el más grande del planeta',['ballena','ballena azul']],
+   ['E','Capital de Alemania',['berlin']]],
+C:[['E','Bebida caliente hecha con granos tostados',['cafe']],
+   ['E','Estadio de Montevideo donde se jugó la final del primer Mundial, en 1930',['centenario','estadio centenario']],
+   ['E','Barrio montevideano de playa donde está el aeropuerto internacional',['carrasco']],
+   ['E','Ritmo afrouruguayo que se toca con tambores',['candombe']],
+   ['E','País sudamericano largo y angosto, cuya capital es Santiago',['chile']]],
+D:[['E','Reptil prehistórico gigante que se extinguió hace millones de años',['dinosaurio']],
+   ['E','Moneda de Estados Unidos',['dolar']],
+   ['E','Nombre del futbolista argentino que hizo "la mano de Dios" en México 86',['diego','diego maradona','diego armando maradona']],
+   ['E','País europeo cuya capital es Copenhague',['dinamarca']],
+   ['E','Departamento uruguayo del centro del país que tiene nombre de fruta',['durazno']]],
+E:[['E','Animal enorme con trompa y colmillos',['elefante']],
+   ['E','País sudamericano atravesado por la línea del ecuador, capital Quito',['ecuador']],
+   ['E','Primer mes del año',['enero']],
+   ['E','Continente donde están Francia, Italia y Alemania',['europa']],
+   ['E','Famosa torre de hierro de París',['eiffel','torre eiffel']]],
+F:[['E','Fruta roja y chiquita que tiene las semillas por fuera',['frutilla','fresa']],
+   ['E','País cuya capital es París',['francia']],
+   ['E','Deporte más popular de Uruguay',['futbol']],
+   ['E','Ave rosada que suele pararse en una sola pata',['flamenco']],
+   ['E','Torre con luz en la costa que guía a los barcos',['faro']]],
+G:[['E','Mascota que maúlla',['gato']],
+   ['E','Instrumento de seis cuerdas',['guitarra']],
+   ['E','Apellido del uruguayo que hizo el gol del Maracanazo en 1950',['ghiggia','alcides ghiggia']],
+   ['E','Primate muy grande y fuerte que vive en África',['gorila']],
+   ['E','País centroamericano cuya capital lleva su mismo nombre',['guatemala']]],
+H:[['E','Lo que ponen las gallinas',['huevo']],
+   ['E','Agua congelada',['hielo']],
+   ['E','Insecto pequeño y trabajador que vive en un hormiguero',['hormiga']],
+   ['E','País europeo famoso por sus molinos y tulipanes',['holanda','paises bajos']],
+   ['E','Nombre del joven mago con una cicatriz en la frente que estudia en Hogwarts',['harry','harry potter']]],
+I:[['E','País europeo con forma de bota',['italia']],
+   ['E','Porción de tierra rodeada de agua por todos lados',['isla']],
+   ['E','Idioma que se habla en Inglaterra',['ingles']],
+   ['E','Reptil verde con cresta, parecido a un lagarto grande',['iguana']],
+   ['E','Océano que está entre África y Australia',['indico','oceano indico']]],
+J:[['E','Planeta más grande del sistema solar',['jupiter']],
+   ['E','Animal más alto del mundo',['jirafa']],
+   ['E','País asiático cuya capital es Tokio',['japon']],
+   ['E','Séptimo mes del año',['julio']],
+   ['E','Felino americano con manchas',['jaguar','yaguarete']]],
+K:[['E','Unidad de peso que equivale a mil gramos',['kilo','kilogramo','kg']],
+   ['E','Animal australiano que come hojas de eucalipto',['koala']],
+   ['E','Arte marcial japonesa que se hizo famosa con la película del niño y el señor Miyagi',['karate','karate do']],
+   ['E','País africano cuya capital es Nairobi',['kenia','kenya']],
+   ['E','Embarcación pequeña que se mueve con un remo de dos palas',['kayak','kayac']]],
+L:[['E','Satélite natural de la Tierra',['luna']],
+   ['E','Animal conocido como el rey de la selva',['leon']],
+   ['E','Fruta amarilla y ácida',['limon']],
+   ['E','Capital de Perú',['lima']],
+   ['E','Nombre del futbolista uruguayo apodado "el Pistolero"',['luis','luis suarez']]],
+M:[['E','Infusión típica uruguaya que se toma con bombilla',['mate']],
+   ['E','Capital de Uruguay',['montevideo']],
+   ['E','Apellido del capitán de Argentina campeón del mundo en 2022, el número 10',['messi','lionel messi']],
+   ['E','Género del carnaval uruguayo con coro, bombo, platillo y redoblante',['murga']],
+   ['E','Planeta conocido como el planeta rojo',['marte']]],
+N:[['E','Fruta cítrica de color anaranjado',['naranja']],
+   ['E','Agua congelada que cae del cielo en copos',['nieve']],
+   ['E','Número que viene después del ocho',['nueve']],
+   ['E','Fiesta que se celebra el 25 de diciembre',['navidad']],
+   ['E','País nórdico cuya capital es Oslo',['noruega']]],
+'Ñ':[['C','Persona de corta edad, que todavía no es adulta',['niño']],
+   ['C','Madera que se quema en la chimenea o en la parrilla',['leña']],
+   ['C','País europeo cuya capital es Madrid',['españa']],
+   ['C','Período de 365 días',['año']],
+   ['C','Animal de ocho patas que teje telas',['araña']]],
+O:[['E','Animal grande y peludo que hiberna en invierno',['oso']],
+   ['E','Metal precioso de color amarillo',['oro']],
+   ['E','Décimo mes del año',['octubre']],
+   ['E','Continente donde está Australia',['oceania']],
+   ['E','Órgano con el que vemos',['ojo','ojos']]],
+P:[['E','País vecino sin salida al mar, del que sale el río que lleva su nombre',['paraguay']],
+   ['E','Ave blanca y negra que no vuela y vive en zonas frías',['pinguino']],
+   ['E','Capital de Francia',['paris']],
+   ['E','Comida italiana redonda con salsa de tomate y queso',['pizza','piza']],
+   ['E','Balneario uruguayo de Maldonado famoso por la escultura de "Los Dedos"',['punta del este','punta']]],
+Q:[['E','Producto lácteo que se pone en el sándwich',['queso']],
+   ['E','Capital de Ecuador',['quito']],
+   ['E','Número que viene después del catorce',['quince']],
+   ['E','Ciencia que estudia la materia y sus transformaciones',['quimica']],
+   ['E','Nombre del famoso caballero de La Mancha, creado por Cervantes',['quijote','don quijote']]],
+R:[['E','Color de la sangre',['rojo']],
+   ['E','País más grande del mundo',['rusia']],
+   ['E','Capital de Italia',['roma']],
+   ['E','Objeto que marca la hora en la muñeca',['reloj']],
+   ['E','Ciudad uruguaya pegada a Santana do Livramento, en la frontera con Brasil',['rivera']]],
+S:[['E','Estrella del sistema solar',['sol']],
+   ['E','Reptil alargado y sin patas',['serpiente','vibora']],
+   ['E','Día de la semana que viene después del viernes',['sabado']],
+   ['E','Planeta famoso por sus anillos',['saturno']],
+   ['E','Instrumento de viento metálico muy usado en el jazz',['saxofon','saxo','saxophone']]],
+T:[['E','Género musical de Carlos Gardel',['tango']],
+   ['E','Felino grande de rayas naranjas y negras',['tigre']],
+   ['E','Capital de Japón',['tokio','tokyo']],
+   ['E','Fruto rojo de las ensaladas que mucha gente cree que es verdura',['tomate']],
+   ['E','Deporte que se juega con raqueta, pelotita y red',['tenis']]],
+U:[['E','País del mate y el candombe, campeón del primer Mundial',['uruguay']],
+   ['E','El primer número natural',['uno']],
+   ['E','Fruta que crece en racimos y con la que se hace el vino',['uva','uvas']],
+   ['E','Caballo mitológico con un cuerno en la frente',['unicornio']],
+   ['E','Séptimo planeta del sistema solar',['urano']]],
+V:[['E','Estación más calurosa del año',['verano']],
+   ['E','Color del pasto',['verde']],
+   ['E','País cuya capital es Caracas',['venezuela']],
+   ['E','Montaña que puede expulsar lava',['volcan']],
+   ['E','Instrumento de cuerdas que se toca con arco',['violin']]],
+W:[['E','Conexión inalámbrica a internet',['wifi','wi fi']],
+   ['E','Deporte acuático con tabla y vela',['windsurf']],
+   ['E','Capital de Estados Unidos',['washington']],
+   ['E','Aplicación de mensajes con logo verde',['whatsapp','wasap','whatsap']],
+   ['E','En "www", la última W significa ...',['web']]],
+X:[['C','Auto con chofer al que se le paga por el viaje',['taxi']],
+   ['C','Gas que respiramos para vivir',['oxigeno']],
+   ['C','Prueba que se toma en el liceo o la facultad',['examen']],
+   ['E','Instrumento de percusión con láminas que se toca con palillos',['xilofono','xilofon']],
+   ['C','País cuya capital es Ciudad de ...',['mexico']]],
+Y:[['E','Producto lácteo fermentado que se toma frío',['yogur','yogurt','yoghurt']],
+   ['E','Hierba que se pone en el mate',['yerba','yerba mate']],
+   ['E','Parte amarilla del huevo',['yema']],
+   ['E','Juguete que sube y baja colgado de un hilo',['yoyo']],
+   ['E','Disciplina de la India con posturas y respiración',['yoga']]],
+Z:[['E','Hortaliza naranja que comen los conejos',['zanahoria']],
+   ['E','Calzado que se usa en el pie',['zapato','zapatos']],
+   ['E','Animal astuto de pelo rojizo y cola peluda',['zorro']],
+   ['E','Lugar donde se exhiben animales',['zoologico','zoo']],
+   ['E','Zapallo chiquito, verde y redondo que en Uruguay se come relleno',['zapallito','zucchini']]]
+};
+const LETTERS = Object.keys(BANK);
+
+/* ================= FRASES DE LA PRESENTADORA ================= */
+const P = {
+  ok:['¡Correcto! Un punto.','¡Correctísimo! ¡Punto!','¡Bien ahí! Un punto más.','¡Eso! ¡Correcto!','¡Impecable! Un punto.'],
+  bad:['Incorrecto, seguimos con la siguiente letra.','¡Uy! Incorrecto. Seguimos.','No es esa… seguimos adelante.','Incorrecto. ¡Pero no se me desanimen!'],
+  pass:['¡Paso! La dejamos pendiente.','¡Pasamos! Volvemos después.','Paso… ¡la guardamos para la vuelta!'],
+  time:['¡Se acabó el tiempo! Perdemos la letra.','¡Tiempo! Esa letra se nos fue.']
+};
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const COLORS = ['#ff5fa2','#4f86ff','#20c96b','#ffa62b','#b77bff'];
+
+/* ================= ESTADO ================= */
+let players = [
+  {name:'Mamá',f:true},{name:'Papá',f:false},{name:'Sebastián',f:false},{name:'Lucía',f:true}
+];
+let S = {}; // estado de partida
+
+const $ = id => document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');window.scrollTo(0,0)}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim()
+  .replace(/^(el|la|los|las|un|una) /,'');
+
+function lev(a,b){const m=[];for(let i=0;i<=b.length;i++)m[i]=[i];for(let j=0;j<=a.length;j++)m[0][j]=j;
+  for(let i=1;i<=b.length;i++)for(let j=1;j<=a.length;j++)m[i][j]=b[i-1]==a[j-1]?m[i-1][j-1]:Math.min(m[i-1][j-1]+1,m[i][j-1]+1,m[i-1][j]+1);
+  return m[b.length][a.length]}
+function isCorrect(input,answers){
+  const words=norm(input).split(' ').filter(Boolean); if(!words.length) return false;
+  // al hablar se suele decir "es Montevideo" o "creo que Montevideo": se prueba cada tramo de hasta 4 palabras
+  const cands=[words.join('')];
+  if(words.length<=10) for(let i=0;i<words.length;i++) for(let j=i+1;j<=Math.min(words.length,i+4);j++) cands.push(words.slice(i,j).join(''));
+  return answers.some(a=>{const y=norm(a).replace(/ /g,''); const tol = y.length>=8?2:(y.length>=5?1:0);
+    return cands.some(x=>x===y||(Math.abs(x.length-y.length)<=tol&&lev(x,y)<=tol));});
+}
+
+/* ================= SONIDO Y VOZ ================= */
+let actx=null;
+function beep(freq,dur,type='sine',vol=.15,delay=0){
+  if(!$('optSound').checked) return;
+  try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain(); o.type=type;o.frequency.value=freq;
+    const t=actx.currentTime+delay; g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.001,t+dur);
+    o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+dur);}catch(e){}
+}
+const sfx={
+  ok(){beep(660,.15,'triangle');beep(880,.15,'triangle',.15,.12);beep(1320,.3,'triangle',.15,.24)},
+  bad(){beep(180,.45,'sawtooth',.12)},
+  pass(){beep(520,.12,'square',.08);beep(390,.2,'square',.08,.1)},
+  tick(){beep(1000,.06,'square',.06)},
+  fanfare(){[523,659,784,1047].forEach((f,i)=>beep(f,.35,'triangle',.14,i*.15))}
+};
+let voice=null, browserVoices=[];
+function fillVoiceSel(){
+  const sel=$('voiceSel'); const prev=sel.value;
+  if(browserVoices.length){ sel.innerHTML=browserVoices.map((v,i)=>`<option value="b${i}">${i===0?'⭐ ':''}Anabela · ${v.name.replace(/^(Microsoft|Google|Apple)\s*/i,'').replace(/\s*Online.*$/i,'').slice(0,28)} (${v.lang})</option>`).join(''); }
+  else { sel.innerHTML='<option value="">Anabela · voz del dispositivo</option>'; }
+  if([...sel.options].some(o=>o.value===prev)) sel.value=prev;
+  else if(voice) sel.value='b'+browserVoices.indexOf(voice);
+}
+function voiceScore(x){ let s=0; const n=x.name+' '+(x.voiceURI||'');
+  if(/natural|neural|online|premium|enhanced|mejorad|siri/i.test(n)) s+=10;
+  if(/google/i.test(n)) s+=6;
+  if(/es[-_](UY|AR)/i.test(x.lang)) s+=4; else if(/es[-_](419|MX|US|CO|CL)/i.test(x.lang)) s+=3; else if(/es[-_]ES/i.test(x.lang)) s+=1;
+  if(/female|mujer|paulina|m[oó]nica|sabina|helena|laura|elvira|dalia|elena|paloma|francisca|camila|valentina|lucia|luc[ií]a|marisol|soledad|ximena|esperanza|angelica|ang[eé]lica|isabela|google espa/i.test(n)) s+=5;
+  if(/male\b|jorge|diego|juan|pablo|ra[uú]l|alvaro|[aá]lvaro|carlos|enrique|tom[aá]s|gonzalo|jos[eé]/i.test(n)) s-=4;
+  if(/compact|espeak/i.test(n)) s-=8; if(x.localService===false) s+=2; return s; }
+function loadVoice(){try{const v=speechSynthesis.getVoices();browserVoices=v.filter(x=>/^es/i.test(x.lang)).sort((a,b)=>voiceScore(b)-voiceScore(a));
+  voice=browserVoices[0]||null; fillVoiceSel();}catch(e){}}
+try{speechSynthesis.onvoiceschanged=loadVoice;}catch(e){}
+function pickedBrowserVoice(){ const v=$('voiceSel').value; return v&&v[0]==='b'?browserVoices[+v.slice(1)]:voice; }
+let TTS=null, listening=false;
+try{loadVoice();}catch(e){}
+function avatarsTalk(on){ document.querySelectorAll('.avatar').forEach(a=>a.classList.toggle('talk',on)); }
+$('btnTestVoice').onclick=()=>say(`¡Hola! Soy Anabela, su conductora. ¡Bienvenidos a ${GAME_NAME}!`);
+
+function say(text,cb){
+  let done=false; const fin=()=>{if(!done){done=true;avatarsTalk(false);cb&&cb();}};
+  if(!$('optVoice').checked){ setTimeout(fin,cb?400:0); return; }
+  if(!window.speechSynthesis){ setTimeout(fin,cb?400:0); return; }
+  avatarsTalk(true);
+  try{if(speechSynthesis.speaking||speechSynthesis.pending)speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.volume=1;const bv=pickedBrowserVoice();
+    u.lang=bv?bv.lang:'es-ES';if(bv)u.voice=bv;u.rate=+$('voiceRate').value||1;u.pitch=+$('voicePitch').value||1;
+    u.onend=fin;u.onerror=fin;speechSynthesis.speak(u);
+    setTimeout(fin, Math.min(12000, 1500+text.length*75)); // por si el navegador no avisa
+  }catch(e){fin()}
+}
+function shutUp(){try{speechSynthesis.cancel()}catch(e){} avatarsTalk(false);}
+
+/* ================= MICRÓFONO DEL CELULAR =================
+   Usa el reconocimiento de voz del navegador (Chrome en Android, Safari en iPhone).
+   La primera vez, el teléfono pide permiso para usar el micrófono. */
+let REC=null, recAlts=[], recGot=false, micDenied=false, recMode='game';
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recLang = /^es/i.test(navigator.language||'') ? navigator.language : 'es-ES';
+function paintMic(){
+  $('btnMic').classList.toggle('live',listening);
+  $('btnMic').innerHTML = listening ? '🟢 Te escucho… <span class="live-badge">EN VIVO</span>' : '🎤 Tocá para hablar';
+}
+function buildRec(){
+  if(!SR) return null;
+  const r=new SR(); r.lang=recLang; r.interimResults=true; r.continuous=false; r.maxAlternatives=4;
+  r.onstart=()=>{ listening=true; recGot=false; recAlts=[]; paintMic(); };
+  r.onresult=e=>{
+    let txt='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const res=e.results[i]; txt+=res[0].transcript;
+      if(res.isFinal){ recGot=true; for(let k=0;k<res.length;k++) recAlts.push(res[k].transcript); }
+    }
+    if(recMode==='test') $('micTestOut').textContent='Escuché: «'+txt.trim()+'»';
+    else $('ansIn').value=txt.trim();
+  };
+  r.onerror=e=>{
+    if(e.error==='not-allowed'||e.error==='service-not-allowed'){ micDenied=true; $('mMic').classList.add('on'); }
+  };
+  r.onend=()=>{
+    listening=false; paintMic();
+    if(recMode==='test'){
+      if(recGot) say('¡Te escucho perfecto!');
+      else if(!micDenied) $('micTestOut').textContent='No escuché nada. Probá de nuevo, más cerca del celu.';
+      return;
+    }
+    if(recGot && recAlts.length){ voiceSubmit(recAlts.slice()); return; }
+    // manos libres: si no dijo nada y el reloj sigue corriendo, vuelve a escuchar
+    if($('optHands').checked && G && G.cur && !G.busy && !G.paused && G.time>1 && !micDenied)
+      setTimeout(()=>{ if(G&&G.cur&&!G.busy&&!G.paused&&!listening) startRec('game'); },250);
+  };
+  return r;
+}
+function startRec(mode){
+  if(!SR||micDenied) return false;
+  recMode=mode||'game';
+  try{ if(!REC) REC=buildRec(); shutUp(); REC.start(); return true; }catch(e){ return false; }
+}
+function stopRec(){ try{ if(REC&&listening) REC.abort(); }catch(e){} listening=false; paintMic(); }
+
+$('btnMic').onclick=()=>{
+  if(!G||$('btnAnswer').disabled) return;
+  if(listening){ try{REC.stop()}catch(e){} return; }
+  $('ansIn').value='';
+  if(!startRec('game')) startKbVoice();
+};
+$('btnMicTest').onclick=()=>{
+  if(!SR){ $('micTestOut').textContent='Este navegador no reconoce voz. Abrí el link en Chrome (Android) o Safari (iPhone), no dentro de WhatsApp o Instagram.'; return; }
+  micDenied=false; $('micTestOut').textContent='Decí algo… (si el celu pide permiso, tocá «Permitir»)';
+  startRec('test');
+};
+
+/* Plan B: el dictado del teclado, por si el navegador no reconoce voz */
+let kbVoice=false, kbTimer=null;
+function startKbVoice(){
+  kbVoice=true; $('ansIn').value=''; $('kbTip').classList.add('on');
+  $('btnMic').classList.add('live'); $('btnMic').innerHTML='🟢 Hablá con el 🎤 del teclado';
+  try{ $('ansIn').focus(); }catch(e){}
+}
+function stopKbVoice(){ kbVoice=false; clearTimeout(kbTimer); $('kbTip').classList.remove('on'); if(!listening) paintMic(); }
+$('ansIn').addEventListener('input',()=>{
+  if(!kbVoice) return; clearTimeout(kbTimer);
+  if(!$('ansIn').value.trim()) return;
+  kbTimer=setTimeout(()=>{ if(!kbVoice||!G||$('btnAnswer').disabled) return;
+    const v=$('ansIn').value; stopKbVoice(); try{$('ansIn').blur()}catch(e){} voiceSubmit([v]); },1500);
+});
+$('btnMicOk').onclick=()=>{ $('mMic').classList.remove('on'); };
+const saysPass = t => { const w=norm(t).split(' '); const j=w.join('');
+  return j.includes('pasapalabra')||j.includes('pasopalabra')||w.includes('paso')||w.includes('pasar')||w.includes('pase'); };
+function voiceSubmit(alts){
+  if(!G||$('btnAnswer').disabled) return;
+  if(alts.some(saysPass)) resolve('pass');
+  else { $('ansIn').value=alts[0]||''; resolve('answer',alts); }
+}
+$('micNote').textContent = SR
+  ? '🎤 Tu navegador puede escucharte. Tocá «Probar micrófono» y dale «Permitir» cuando el celu lo pida.'
+  : '🎤 Este navegador no reconoce voz: se va a usar el micrófono del teclado. Para usar el micrófono directo, abrí el link en Chrome (Android) o Safari (iPhone).';
+
+/* ================= BIENVENIDA ================= */
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function savePlayers(){ try{localStorage.setItem('rosco_players',JSON.stringify(players))}catch(e){} }
+try{ const sp=JSON.parse(localStorage.getItem('rosco_players')||'null'); if(Array.isArray(sp)&&sp.length>=2&&sp.length<=5) players=sp; }catch(e){}
+function renderPlayersEdit(){
+  $('playersEdit').innerHTML = players.map((p,i)=>`<div class="pl"><button type="button" class="dot" data-g="${i}" title="Tocá para cambiar" style="background:${COLORS[i]};border:none;cursor:pointer;font-size:16px">${p.f?'👩':'👨'}</button>
+    <input value="${esc(p.name)}" data-i="${i}" maxlength="14"></div>`).join('');
+  $('playersEdit').querySelectorAll('input').forEach(inp=>inp.oninput=e=>{players[+e.target.dataset.i].name=e.target.value.trim()||('Jugador '+(+e.target.dataset.i+1));renderWelcome();savePlayers()});
+  $('playersEdit').querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{const p=players[+b.dataset.g];p.f=!p.f;savePlayers();renderPlayersEdit();});
+  $('btnAddP').disabled = players.length>=5; $('btnDelP').disabled = players.length<=2;
+}
+$('btnAddP').onclick=()=>{ if(players.length<5){ players.push({name:'Jugador '+(players.length+1),f:false}); savePlayers(); renderPlayersEdit(); renderWelcome(); } };
+$('btnDelP').onclick=()=>{ if(players.length>2){ players.pop(); savePlayers(); renderPlayersEdit(); renderWelcome(); } };
+const listNames = () => players.map(p=>p.name).join(', ').replace(/, ([^,]*)$/,' y $1');
+function renderWelcome(){ $('welcomeTxt').textContent = `¡Buenas noches y bienvenidos a ${GAME_NAME}! Soy Anabela, su conductora. Esta noche compiten ${listNames()}. Cada uno tiene su rosco, quince segundos por pregunta y tres comodines. ¿Están listos? ¡Que empiece el show!`; }
+renderWelcome();
+renderPlayersEdit();
+
+/* ================= ARMAR PARTIDA ================= */
+function newGame(){
+  // reparte preguntas distintas a cada jugador; las sobrantes quedan para "cambiar pregunta"
+  const deck={}; LETTERS.forEach(L=>deck[L]=shuffle(BANK[L].map(q=>({t:q[0],q:q[1],a:q[2]}))));
+  S={ idx:0, deck, results:[], spare:{} };
+  S.roscos = players.map(()=>{const r={};LETTERS.forEach(L=>r[L]=deck[L].pop());return r;});
+  LETTERS.forEach(L=>S.spare[L]=deck[L]); // lo que sobra
+}
+
+/* ================= PRESENTAR JUGADOR ================= */
+function introPlayer(){
+  const p=players[S.idx];
+  $('introNum').textContent = `Participante ${S.idx+1} de ${players.length}`;
+  $('introName').textContent = p.name;
+  $('introName').style.color = COLORS[S.idx];
+  const lista = S.idx===0 ? `¡Bienvenidos a ${GAME_NAME}! Esta noche compiten ${listNames()}. Comenzamos con ${p.name}.` : pick([`¡Turno de ${p.name}!`,`¡Ahora le toca a ${p.name}!`,`¡Que pase ${p.name}!`]);
+  const prep = p.f?'Preparada':'Preparado';
+  const t = `${lista} El rosco está listo, el reloj también. ${prep}…`;
+  $('introTxt').textContent = t;
+  $('btnReady').textContent = `¡${prep}! ▶`;
+  show('sIntro'); say(t);
+}
+$('btnReady').onclick=()=>{ say('¡Comenzamos!'); startRosco(); };
+
+/* ================= JUEGO ================= */
+let G=null, timerId=null;
+function buildRosco(){
+  const box=$('rosco'); box.querySelectorAll('.letter').forEach(e=>e.remove());
+  LETTERS.forEach((L,i)=>{const ang=(i/LETTERS.length)*2*Math.PI-Math.PI/2;
+    const d=document.createElement('div');d.className='letter';d.id='L_'+L;d.textContent=L;
+    d.style.left=(50+44*Math.cos(ang))+'%';d.style.top=(50+44*Math.sin(ang))+'%';box.appendChild(d);});
+}
+function startRosco(){
+  const p=players[S.idx];
+  G={ q:S.roscos[S.idx], state:{}, queue:[...LETTERS], pending:[], vuelta:1, cur:null, time:15,
+      ok:0,bad:0, com:{hint:true,time:true,swap:true}, busy:false, paused:false, hintShown:false };
+  LETTERS.forEach(L=>G.state[L]='');
+  buildRosco();
+  $('gWho').textContent=p.name; $('gWho').style.color=COLORS[S.idx];
+  ['cHint','cTime','cSwap'].forEach(id=>$(id).disabled=false);
+  show('sGame'); updateTop();
+  setTimeout(nextLetter,900);
+}
+function updateTop(){
+  $('gOk').textContent='✓ '+G.ok; $('gBad').textContent='✗ '+G.bad;
+  $('gPass').textContent='↻ '+LETTERS.filter(L=>G.state[L]==='pass').length;
+  $('gVuelta').textContent = G.vuelta===1?'Primera vuelta':'Segunda vuelta · última oportunidad';
+}
+function nextLetter(pre=''){
+  clearInterval(timerId);
+  pre = pre ? pre+' ' : '';
+  if(G.queue.length===0){
+    if(G.vuelta===1 && G.pending.length){
+      G.vuelta=2; G.queue=G.pending; G.pending=[]; updateTop();
+      const n=G.queue.length;
+      const t=pre+`¡Segunda vuelta! Quedan ${n} letra${n>1?'s':''} pendiente${n>1?'s':''}. ¡Última oportunidad!`;
+      flash('2ª VUELTA','#7a55ff'); setQ('',t); say(t,()=>setTimeout(()=>nextLetter(),150)); return;
+    }
+    return endRosco(pre);
+  }
+  G.cur=G.queue.shift(); G.hintShown=false; $('gHint').textContent=''; stopKbVoice();
+  document.querySelectorAll('.letter').forEach(e=>e.classList.remove('cur'));
+  $('L_'+G.cur).classList.add('cur');
+  const q=G.q[G.cur];
+  const tipo = q.t==='E'?`Empieza con ${G.cur}`:`Contiene la ${G.cur}`;
+  setQ(tipo,q.q); $('gCurL').textContent='Letra '+G.cur;
+  $('ansIn').value=''; $('btnPass').textContent = G.vuelta===1?'¡Paso! 👉':'Paso (se pierde)';
+  updateTop(); setButtons(false);
+  G.time=15; drawTime();
+  G.busy=true;
+  say(`${pre}${tipo}. ${q.q}`, ()=>{ if(!G||G.paused) return; G.busy=false; setButtons(true); startTimer(); handsFree(); });
+}
+function setQ(tipo,txt){ $('gType').style.display=tipo?'inline-block':'none'; $('gType').textContent=tipo; $('gQ').textContent=txt; }
+function setButtons(on){ ['btnAnswer','btnPass','btnMic'].forEach(id=>$(id).disabled=!on);
+  $('cHint').disabled=!on||!G.com.hint; $('cTime').disabled=!on||!G.com.time; $('cSwap').disabled=!on||!G.com.swap||!S.spare[G.cur]||!S.spare[G.cur].length; }
+function handsFree(){ if($('optHands').checked && SR && !micDenied){ $('ansIn').value=''; if(!startRec('game')) focusIn(); } else focusIn(); }
+function focusIn(){ try{$('ansIn').focus({preventScroll:true})}catch(e){} }
+function startTimer(){
+  clearInterval(timerId);
+  timerId=setInterval(()=>{ if(G.paused) return; G.time--; drawTime(); if(G.time<=5&&G.time>0) sfx.tick();
+    if(G.time<=0){ clearInterval(timerId); resolve('time'); } },1000);
+}
+function drawTime(){
+  $('gTimer').textContent=Math.max(0,G.time); $('gTimer').classList.toggle('warn',G.time<=5);
+  const max = Math.max(15,G.time); $('ringFg').style.strokeDashoffset = 295.3*(1-Math.max(0,G.time)/max);
+  $('ringFg').style.stroke = G.time<=5?'#ff4057':'#ffd84a';
+}
+function resolve(kind,alts){
+  if(G.busy && kind!=='time') return;
+  clearInterval(timerId); G.busy=true; setButtons(false); shutUp();
+  stopRec();
+  stopKbVoice();
+  const L=G.cur, el=$('L_'+L); let msg;
+  if(kind==='answer'){
+    if((alts&&alts.length?alts:[$('ansIn').value]).some(t=>isCorrect(t,G.q[L].a))){ G.ok++; G.state[L]='ok'; el.className='letter ok'; sfx.ok(); flash('¡CORRECTO!','#20c96b'); msg=pick(P.ok); }
+    else { G.bad++; G.state[L]='bad'; el.className='letter bad'; sfx.bad(); flash('INCORRECTO','#ff4057'); msg=pick(P.bad); }
+  } else if(kind==='pass'){
+    if(G.vuelta===1){ G.pending.push(L); G.state[L]='pass'; el.className='letter pass'; sfx.pass(); flash('¡PASO!','#ff8a1f'); msg=pick(P.pass); }
+    else { G.state[L]='none'; el.className='letter'; el.style.opacity=.35; sfx.pass(); flash('¡PASO!','#ff8a1f'); msg='Paso en la última vuelta… esa letra queda sin responder.'; }
+  } else { G.bad++; G.state[L]='bad'; el.className='letter bad'; sfx.bad(); flash('¡TIEMPO!','#ff4057'); msg=pick(P.time); }
+  G.cur=null; updateTop(); setQ('',msg);
+  setTimeout(()=>{ if(G&&!G.paused){ nextLetter(msg); } else if(G){ G.resumeNext=true; G.pre=msg; } },650);
+}
+function flash(t,c){ const f=$('flash'); f.innerHTML=`<div style="background:${c}">${t}</div>`; setTimeout(()=>f.innerHTML='',950); }
+
+$('ansForm').onsubmit=e=>{e.preventDefault(); if(!$('btnAnswer').disabled) resolve('answer');};
+$('btnAnswer').onclick=()=>resolve('answer');
+$('btnPass').onclick=()=>resolve('pass');
+$('cHint').onclick=()=>{ if(!G.com.hint) return; G.com.hint=false; $('cHint').disabled=true;
+  const a=G.q[G.cur].a[0]; const shown=a.split('').map((ch,i)=>ch===' '?'  ':(i<2?ch.toUpperCase():'_')).join(' ');
+  $('gHint').textContent=`💡 ${shown}  (${a.replace(/ /g,'').length} letras)`; say('¡Comodín de pista!'); };
+$('cTime').onclick=()=>{ if(!G.com.time) return; G.com.time=false; $('cTime').disabled=true; G.time+=10; drawTime(); say('¡Diez segundos extra!'); };
+$('cSwap').onclick=()=>{ const sp=S.spare[G.cur]; if(!G.com.swap||!sp||!sp.length) return;
+  G.com.swap=false; clearInterval(timerId); setButtons(false); G.q[G.cur]=sp.pop();
+  const q=G.q[G.cur]; const tipo=q.t==='E'?`Empieza con ${G.cur}`:`Contiene la ${G.cur}`;
+  setQ(tipo,q.q); $('gHint').textContent=''; G.time=15; drawTime(); G.busy=true;
+  say(`¡Cambio de pregunta! ${tipo}. ${q.q}`,()=>{ if(G.paused) return; G.busy=false; setButtons(true); startTimer(); handsFree(); }); };
+
+/* altavoz y repetir */
+function paintSpeaker(){ $('btnSpeaker').textContent = $('optVoice').checked ? '🔊 Altavoz: ON' : '🔇 Altavoz: OFF'; }
+$('btnSpeaker').onclick=()=>{ $('optVoice').checked=!$('optVoice').checked; if(!$('optVoice').checked) shutUp(); paintSpeaker(); };
+$('optVoice').addEventListener('change',paintSpeaker);
+$('btnRepeat').onclick=()=>{ if(!G||!G.cur||G.busy) return; const q=G.q[G.cur];
+  if(!$('optVoice').checked){ $('optVoice').checked=true; paintSpeaker(); }
+  say(`${q.t==='E'?'Empieza con '+G.cur:'Contiene la '+G.cur}. ${q.q}`); };
+/* pausa */
+$('btnPause').onclick=()=>{ if(!G) return; G.paused=true; shutUp(); stopRec(); $('mPause').classList.add('on'); };
+$('btnResume').onclick=()=>{ $('mPause').classList.remove('on'); G.paused=false;
+  if(G.resumeNext){ G.resumeNext=false; nextLetter(G.pre||''); G.pre=''; return; }
+  if(G.cur && G.busy){ G.busy=false; setButtons(true); startTimer(); handsFree(); } };
+$('btnQuit').onclick=()=>{ $('mPause').classList.remove('on'); clearInterval(timerId); shutUp(); stopRec(); G=null; show('sWelcome'); };
+
+/* ================= FIN DE ROSCO ================= */
+function endRosco(pre=''){
+  clearInterval(timerId);
+  const p=players[S.idx]; const no=LETTERS.length-G.ok-G.bad;
+  S.results[S.idx]={name:p.name,ok:G.ok,bad:G.bad,no,color:COLORS[S.idx]};
+  $('reName').textContent=p.name; $('reName').style.color=COLORS[S.idx];
+  $('rePts').textContent=G.ok; $('reOk').textContent=G.ok; $('reBad').textContent=G.bad; $('reNo').textContent=no;
+  const pct=G.ok/LETTERS.length;
+  const coment = pct>=.85?'¡Rosco espectacular! Esto es nivel campeonato.':pct>=.65?'¡Muy buen rosco! La tribuna está de pie.':pct>=.4?'¡Buen trabajo! Rosco peleado hasta el final.':'¡Lo importante es competir! Y divertirse, que para eso estamos.';
+  const t=`¡Terminó el rosco de ${p.name}! ${G.ok} punto${G.ok===1?'':'s'}. ${coment}`;
+  $('reTxt').textContent=t; $('reTable').innerHTML=tableHTML(false);
+  const last = S.idx===players.length-1;
+  $('btnNext').textContent = last?'🏆 Ver la gran final':`▶ Siguiente: ${players[S.idx+1].name}`;
+  show('sRoscoEnd'); sfx.fanfare(); say((pre?pre+' ':'')+t); G=null;
+}
+$('btnNext').onclick=()=>{ shutUp(); S.idx++; if(S.idx<players.length) introPlayer(); else finale(); };
+
+function ranking(){ return S.results.filter(Boolean).slice().sort((a,b)=>b.ok-a.ok||a.bad-b.bad); }
+function tableHTML(final){
+  const r=ranking(); let pos=0,prev=null;
+  const rows=r.map((x,i)=>{ const key=x.ok+'-'+x.bad; if(key!==prev){pos=i+1;prev=key;}
+    const medal=final?(['🥇','🥈','🥉'][pos-1]||'🎖️'):pos+'º';
+    return `<tr class="${final&&pos===1?'win':''}"><td class="medal">${medal}</td><td style="color:${final&&pos===1?'':x.color}">${x.name}</td><td class="n">${x.ok}</td><td class="n">${x.bad}</td><td class="n">${x.no}</td></tr>`;}).join('');
+  return `<h3 style="margin-bottom:6px">${final?'📊 Tabla final':'📊 Tabla parcial'}</h3><table><tr><th></th><th>Jugador</th><th style="text-align:center">Pts</th><th style="text-align:center">✗</th><th style="text-align:center">—</th></tr>${rows}</table>
+  <p style="font-size:12px;color:var(--muted);margin-top:8px">Pts = aciertos · ✗ = errores · — = sin responder. Desempate: menos errores.</p>`;
+}
+
+/* ================= GRAN FINAL ================= */
+function finale(){
+  const r=ranking(); const top=r.filter(x=>x.ok===r[0].ok&&x.bad===r[0].bad);
+  let t,w;
+  if(top.length===1){ w=`🏆 ¡${top[0].name}!`; t=`¡Redoble de tambores! Después de ${S.results.length} roscos de infarto… con ${top[0].ok} puntos, la gran ganadora o ganador de ${GAME_NAME} es… ¡${top[0].name}! ¡Un aplauso para todos!`; }
+  else { const n=top.map(x=>x.name).join(' y '); w=`🏆 ¡Empate: ${n}!`; t=`¡Increíble! Tenemos empate en el primer puesto con ${top[0].ok} puntos: ¡${n}! Para desempatar… ¡revancha! ¡Un aplauso para todos!`; }
+  $('fTxt').textContent=t; $('fWinner').textContent=w; $('fTable').innerHTML=tableHTML(true);
+  show('sFinal'); sfx.fanfare(); setTimeout(()=>sfx.fanfare(),700); confetti(); say(t);
+}
+function confetti(){ const cols=['#ffd84a','#ff5fa2','#4f86ff','#20c96b','#ffa62b','#fff'];
+  for(let i=0;i<120;i++){ const c=document.createElement('div'); c.className='confetti';
+    c.style.left=Math.random()*100+'vw'; c.style.background=cols[i%cols.length];
+    c.style.animationDuration=(2.5+Math.random()*2.5)+'s'; c.style.animationDelay=Math.random()*1.2+'s';
+    document.body.appendChild(c); setTimeout(()=>c.remove(),6500);} }
+
+/* ================= ARRANQUE ================= */
+$('btnStart').onclick=()=>{
+  try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)(); actx.resume(); }catch(e){}
+  newGame(); S.idx=0; introPlayer();
+};
+$('btnAgain').onclick=()=>{ shutUp(); show('sWelcome'); };
+</script>
+</body>
+</html>
