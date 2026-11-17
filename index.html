@@ -168,6 +168,7 @@ tr.win td{color:var(--gold)}
     </div>
     <div class="row mt">
       <label class="toggle"><input type="checkbox" id="optSound" checked> Sonidos</label>
+      <label class="toggle"><input type="checkbox" id="optMusic" checked> 🎵 Música de fondo</label>
     </div>
   </div>
   <div class="card">
@@ -247,6 +248,7 @@ tr.win td{color:var(--gold)}
   <div class="row mt" style="justify-content:center">
     <button class="btn ghost" id="btnRepeat">🔁 Repetir pregunta</button>
     <button class="btn ghost" id="btnSpeaker">🔊 Altavoz: ON</button>
+    <button class="btn ghost" id="btnMusic">🎵 Música: ON</button>
     <button class="btn ghost" id="btnRepeat">🔁 Repetir pregunta</button>
     <button class="btn ghost" id="btnPause">⏸ Pausa</button>
   </div>
@@ -512,12 +514,26 @@ function beep(freq,dur,type='sine',vol=.15,delay=0){
     const t=actx.currentTime+delay; g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.001,t+dur);
     o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+dur);}catch(e){}
 }
+/* sonidos suaves: nada que asuste */
+function softTone(f,t0,d,vol,type='sine',f2=null){
+  const o=actx.createOscillator(),g=actx.createGain(); o.type=type; o.frequency.setValueAtTime(f,t0);
+  if(f2) o.frequency.exponentialRampToValueAtTime(f2,t0+d);
+  g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(vol,t0+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t0+d);
+  o.connect(g); g.connect(actx.destination); o.start(t0); o.stop(t0+d+0.05);
+}
+let noiseBuf=null;
+function getNoise(){ if(noiseBuf) return noiseBuf; const n=actx.sampleRate; noiseBuf=actx.createBuffer(1,n,n); const d=noiseBuf.getChannelData(0); for(let i=0;i<n;i++) d[i]=Math.random()*2-1; return noiseBuf; }
+function sfxOn(){ return $('optSound').checked && ensureCtx(); }
 const sfx={
-  ok(){beep(660,.15,'triangle');beep(880,.15,'triangle',.15,.12);beep(1320,.3,'triangle',.15,.24)},
-  bad(){beep(180,.45,'sawtooth',.12)},
-  pass(){beep(520,.12,'square',.08);beep(390,.2,'square',.08,.1)},
-  tick(){beep(1000,.06,'square',.06)},
-  fanfare(){[523,659,784,1047].forEach((f,i)=>beep(f,.35,'triangle',.14,i*.15))}
+  ok(){ if(!sfxOn()) return; const t=actx.currentTime; softTone(784,t,.45,.07); softTone(1175,t+.11,.6,.06); },           // campanita
+  bad(){ if(!sfxOn()) return; const t=actx.currentTime; softTone(330,t,.38,.08,'sine',220); },                          // "bonk" grave y suave
+  pass(){ if(!sfxOn()) return; const t=actx.currentTime;                                                                 // suspiro de aire
+    const s=actx.createBufferSource(); s.buffer=getNoise(); const f=actx.createBiquadFilter(); f.type='bandpass'; f.Q.value=1.2;
+    f.frequency.setValueAtTime(500,t); f.frequency.exponentialRampToValueAtTime(2600,t+.35);
+    const g=actx.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(.09,t+.08); g.gain.exponentialRampToValueAtTime(0.0001,t+.4);
+    s.connect(f); f.connect(g); g.connect(actx.destination); s.start(t); s.stop(t+.45); softTone(660,t+.12,.3,.025); },
+  tick(){ if(!sfxOn()) return; softTone(880,actx.currentTime,.07,.025); },
+  fanfare(){ if(!sfxOn()) return; const t=actx.currentTime; [523,659,784,1047].forEach((f,i)=>softTone(f,t+i*.14,.5,.06,'triangle')); }
 };
 let voice=null, browserVoices=[];
 function fillVoiceSel(){
@@ -540,18 +556,55 @@ try{speechSynthesis.onvoiceschanged=loadVoice;}catch(e){}
 function pickedBrowserVoice(){ const v=$('voiceSel').value; return v&&v[0]==='b'?browserVoices[+v.slice(1)]:voice; }
 let TTS=null, listening=false;
 try{loadVoice();}catch(e){}
-function avatarsTalk(on){ document.querySelectorAll('.avatar').forEach(a=>a.classList.toggle('talk',on)); }
+function avatarsTalk(on){ document.querySelectorAll('.avatar').forEach(a=>a.classList.toggle('talk',on)); talking=on; musicLevel(); }
+let talking=false;
+/* ================= MÚSICA DE FONDO (compuesta acá mismo, suave, estilo programa de tele) ================= */
+const MUS={on:false,bus:null,gain:null,timer:null,next:0,step:0};
+const PROG=[[48,[64,67,72]],[45,[64,69,72]],[41,[65,69,72]],[43,[62,67,71]]]; // Do – La menor – Fa – Sol
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+const EIGHTH=60/104/2;
+function musicLevel(){ if(!MUS.on||!actx) return; const v = (talking||listening) ? 0.10 : 0.32; MUS.gain.gain.setTargetAtTime(v,actx.currentTime,0.25); }
+function musicStart(){
+  if(MUS.on || !$('optMusic').checked || !ensureCtx()) return;
+  MUS.on=true; MUS.gain=actx.createGain(); MUS.gain.gain.value=0.0001;
+  MUS.bus=actx.createBiquadFilter(); MUS.bus.type='lowpass'; MUS.bus.frequency.value=3200;
+  MUS.bus.connect(MUS.gain); MUS.gain.connect(actx.destination);
+  MUS.next=actx.currentTime+0.15; MUS.step=0; MUS.timer=setInterval(musicTick,90); musicLevel(); paintMusic();
+}
+function musicStop(){ if(!MUS.on) return; MUS.on=false; clearInterval(MUS.timer); const g=MUS.gain;
+  try{ g.gain.setTargetAtTime(0.0001,actx.currentTime,0.2); setTimeout(()=>{try{g.disconnect()}catch(e){}},1500);}catch(e){} paintMusic(); }
+function musicTick(){ if(!MUS.on) return; while(MUS.next < actx.currentTime+0.35){ musicStep(MUS.step,MUS.next); MUS.next+=EIGHTH; MUS.step++; } }
+function mNote(f,t,d,vol,type,att){ const o=actx.createOscillator(),g=actx.createGain(); o.type=type; o.frequency.value=f;
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+att); g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+  o.connect(g); g.connect(MUS.bus); o.start(t); o.stop(t+d+0.05); }
+function mHat(t,vol){ const s=actx.createBufferSource(); s.buffer=getNoise(); const f=actx.createBiquadFilter(); f.type='highpass'; f.frequency.value=6000;
+  const g=actx.createGain(); g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.05);
+  s.connect(f); f.connect(g); g.connect(MUS.gain); s.start(t); s.stop(t+0.07); }
+function musicStep(s,t){
+  const e=s%8, bar=Math.floor(s/8), [bass,ch]=PROG[Math.floor(bar/2)%4];
+  if(e===0 && bar%2===0) ch.forEach(m=>mNote(mtof(m-12),t,EIGHTH*16,0.035,'triangle',0.4));       // colchón de acordes
+  if(e===0||e===3||e===4) mNote(mtof(bass),t,EIGHTH*1.6,0.22,'sine',0.01);                          // bajo saltarín
+  if(e===6) mNote(mtof(bass+7),t,EIGHTH*0.9,0.14,'sine',0.01);
+  const arp=[0,1,2,1,2,0,1,2]; if(bar%4!==3 || e<4) mNote(mtof(ch[arp[e]]),t,EIGHTH*0.9,0.045,'sine',0.005); // melodía tipo marimba
+  if(e%2===1) mHat(t,0.025);                                                                         // platillo suave
+}
+function paintMusic(){ const b=$('btnMusic'); if(b) b.textContent = MUS.on ? '🎵 Música: ON' : '🎵 Música: OFF'; }
+
 $('btnTestVoice').onclick=()=>{ ensureCtx()&&actx.resume&&actx.resume(); seq(['F05','Empieza con A. Capital de Paraguay.']); };
 
+let speechGen=0; // cada vez que Anabela empieza o se la calla, las órdenes viejas quedan sin efecto
 function say(text,cb){
-  let done=false; const fin=()=>{if(!done){done=true;avatarsTalk(false);cb&&cb();}};
+  const tok=++speechGen;
+  let done=false; const fin=()=>{ if(done) return; done=true; if(tok!==speechGen) return; avatarsTalk(false); cb&&cb(); };
   if(!$('optVoice').checked){ setTimeout(fin,cb?400:0); return; }
   if(!window.speechSynthesis){ setTimeout(fin,cb?400:0); return; }
   avatarsTalk(true);
   try{if(speechSynthesis.speaking||speechSynthesis.pending)speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.volume=1;const bv=pickedBrowserVoice();
     u.lang=bv?bv.lang:'es-ES';if(bv)u.voice=bv;u.rate=+$('voiceRate').value||1;u.pitch=+$('voicePitch').value||1;
+    // red de seguridad: si el navegador no avisa que terminó. Solo corta si nunca arrancó a hablar.
+    const early=setTimeout(fin,4000);
+    u.onstart=()=>{ clearTimeout(early); setTimeout(fin, Math.max(9000, text.length*140)); };
     u.onend=fin;u.onerror=fin;speechSynthesis.speak(u);
-    setTimeout(fin, Math.min(12000, 1500+text.length*75)); // por si el navegador no avisa
   }catch(e){fin()}
 }
 let curSrc=null; const CLIPS={};
@@ -567,15 +620,16 @@ async function loadClips(){
 }
 loadClips();
 function playClip(k,cb){
-  let done=false; const fin=()=>{ if(!done){ done=true; avatarsTalk(false); cb&&cb(); } };
-  if(!$('optVoice').checked){ setTimeout(fin,cb?350:0); return; }
   const b=CLIPS[k];
-  if(!b||!actx){ say(txt(k),cb); return; }
+  if($('optVoice').checked && (!b||!actx)){ say(txt(k),cb); return; }
+  const tok=++speechGen;
+  let done=false; const fin=()=>{ if(done) return; done=true; if(tok!==speechGen) return; avatarsTalk(false); cb&&cb(); };
+  if(!$('optVoice').checked){ setTimeout(fin,cb?350:0); return; }
   try{ actx.resume&&actx.resume(); stopClip(); const s=actx.createBufferSource(); s.buffer=b; s.connect(actx.destination);
     s.onended=fin; curSrc=s; avatarsTalk(true); s.start(); setTimeout(fin,(b.duration+1.5)*1000);
   }catch(e){ say(txt(k),cb); }
 }
-function stopClip(){ if(curSrc){ const s=curSrc; curSrc=null; try{s.stop()}catch(e){} } }
+function stopClip(){ if(curSrc){ const s=curSrc; curSrc=null; s.onended=null; try{s.stop()}catch(e){} } }
 /* dice una lista de cosas en orden: códigos de frase grabada (F05) o texto para la voz del celular */
 function seq(items,cb){
   items=items.filter(Boolean);
@@ -583,36 +637,41 @@ function seq(items,cb){
     if(CLIP_TXT[it]) playClip(it,next); else say(it,next); };
   next();
 }
-function shutUp(){try{speechSynthesis.cancel()}catch(e){} stopClip(); avatarsTalk(false);}
+function shutUp(){ speechGen++; try{speechSynthesis.cancel()}catch(e){} stopClip(); avatarsTalk(false);}
 
 /* ================= MICRÓFONO DEL CELULAR =================
    Usa el reconocimiento de voz del navegador (Chrome en Android, Safari en iPhone).
    La primera vez, el teléfono pide permiso para usar el micrófono. */
-let REC=null, recAlts=[], recGot=false, micDenied=false, recMode='game';
+let REC=null, recAlts=[], recGot=false, micDenied=false, recMode='game', recInterim='';
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recLang = /^es/i.test(navigator.language||'') ? navigator.language : 'es-ES';
-function paintMic(){
+function paintMic(){ try{musicLevel()}catch(e){}
   $('btnMic').classList.toggle('live',listening);
   $('btnMic').innerHTML = listening ? '🟢 Te escucho… <span class="live-badge">EN VIVO</span>' : '🎤 Tocá para hablar';
 }
 function buildRec(){
   if(!SR) return null;
   const r=new SR(); r.lang=recLang; r.interimResults=true; r.continuous=false; r.maxAlternatives=4;
-  r.onstart=()=>{ listening=true; recGot=false; recAlts=[]; paintMic(); };
+  r.onstart=()=>{ listening=true; recGot=false; recAlts=[]; recInterim=''; paintMic(); };
   r.onresult=e=>{
     let txt='';
     for(let i=e.resultIndex;i<e.results.length;i++){
       const res=e.results[i]; txt+=res[0].transcript;
       if(res.isFinal){ recGot=true; for(let k=0;k<res.length;k++) recAlts.push(res[k].transcript); }
     }
+    if(txt.trim()) recInterim=txt.trim();
     if(recMode==='test') $('micTestOut').textContent='Escuché: «'+txt.trim()+'»';
     else $('ansIn').value=txt.trim();
+    // "paso" se toma al instante, sin esperar
+    if(recMode==='game' && saysPass(txt)){ recGot=true; recAlts=['paso']; try{REC.stop()}catch(e){} }
   };
   r.onerror=e=>{
     if(e.error==='not-allowed'||e.error==='service-not-allowed'){ micDenied=true; $('mMic').classList.add('on'); }
   };
   r.onend=()=>{
     listening=false; paintMic();
+    // en iPhone a veces no llega la versión "final": usamos lo último que se escuchó
+    if(!recGot && recInterim){ recGot=true; recAlts=[recInterim]; }
     if(recMode==='test'){
       if(recGot) say('¡Te escucho perfecto!');
       else if(!micDenied) $('micTestOut').textContent='No escuché nada. Probá de nuevo, más cerca del celu.';
@@ -659,8 +718,9 @@ $('ansIn').addEventListener('input',()=>{
     const v=$('ansIn').value; stopKbVoice(); try{$('ansIn').blur()}catch(e){} voiceSubmit([v]); },1500);
 });
 $('btnMicOk').onclick=()=>{ $('mMic').classList.remove('on'); };
-const saysPass = t => { const w=norm(t).split(' '); const j=w.join('');
-  return j.includes('pasapalabra')||j.includes('pasopalabra')||w.includes('paso')||w.includes('pasar')||w.includes('pase'); };
+const PASS_WORDS=['paso','pasa','pase','pasar','pasamos','pasapalabra','pasopalabra','pazo','pasó','siguiente','paso paso'];
+const saysPass = t => { const w=norm(t).split(' ').filter(Boolean); const j=w.join('');
+  return j.includes('pasapalabra')||j.includes('pasopalabra')||w.some(x=>PASS_WORDS.includes(x)); };
 function voiceSubmit(alts){
   if(!G||$('btnAnswer').disabled) return;
   if(alts.some(saysPass)) resolve('pass');
@@ -742,7 +802,7 @@ function nextLetter(pre=''){
       G.vuelta=2; G.queue=G.pending; G.pending=[]; updateTop();
       const n=G.queue.length;
       flash('2ª VUELTA','#7a55ff'); setQ('',`¡Segunda vuelta! Quedan ${n} letra${n>1?'s':''} pendiente${n>1?'s':''}. ¡Última oportunidad!`);
-      seq([pre,'F16'],()=>setTimeout(()=>{ if(G&&!G.paused) nextLetter(); else if(G){ G.resumeNext=true; G.pre=''; } },150)); return;
+      seq([pre,'F16'],()=>setTimeout(()=>{ if(G&&!G.paused&&!G.cur) nextLetter(); },150)); return;
     }
     return endRosco(pre);
   }
@@ -796,9 +856,9 @@ $('btnAnswer').onclick=()=>resolve('answer');
 $('btnPass').onclick=()=>resolve('pass');
 $('cHint').onclick=()=>{ if(!G.com.hint) return; G.com.hint=false; $('cHint').disabled=true;
   const a=G.q[G.cur].a[0]; const shown=a.split('').map((ch,i)=>ch===' '?'  ':(i<2?ch.toUpperCase():'_')).join(' ');
-  $('gHint').textContent=`💡 ${shown}  (${a.replace(/ /g,'').length} letras)`; playClip('F17'); };
-$('cTime').onclick=()=>{ if(!G.com.time) return; G.com.time=false; $('cTime').disabled=true; G.time+=10; drawTime(); playClip('F18'); };
-$('cSwap').onclick=()=>{ const sp=S.spare[G.cur]; if(!G.com.swap||!sp||!sp.length) return;
+  $('gHint').textContent=`💡 ${shown}  (${a.replace(/ /g,'').length} letras)`; stopRec(); playClip('F17',resumeListen); };
+$('cTime').onclick=()=>{ if(!G.com.time) return; G.com.time=false; $('cTime').disabled=true; G.time+=10; drawTime(); stopRec(); playClip('F18',resumeListen); };
+$('cSwap').onclick=()=>{ const sp=S.spare[G.cur]; if(!G.com.swap||!sp||!sp.length) return; stopRec();
   G.com.swap=false; clearInterval(timerId); setButtons(false); G.q[G.cur]=sp.pop();
   const q=G.q[G.cur]; const tipo=q.t==='E'?`Empieza con ${G.cur}`:`Contiene la ${G.cur}`;
   setQ(tipo,q.q); $('gHint').textContent=''; G.time=15; drawTime(); G.busy=true;
@@ -808,15 +868,17 @@ $('cSwap').onclick=()=>{ const sp=S.spare[G.cur]; if(!G.com.swap||!sp||!sp.lengt
 function paintSpeaker(){ $('btnSpeaker').textContent = $('optVoice').checked ? '🔊 Altavoz: ON' : '🔇 Altavoz: OFF'; }
 $('btnSpeaker').onclick=()=>{ $('optVoice').checked=!$('optVoice').checked; if(!$('optVoice').checked) shutUp(); paintSpeaker(); };
 $('optVoice').addEventListener('change',paintSpeaker);
+$('btnMusic').onclick=()=>{ if(MUS.on){ musicStop(); $('optMusic').checked=false; } else { $('optMusic').checked=true; musicStart(); } paintMusic(); };
 $('btnRepeat').onclick=()=>{ if(!G||!G.cur||G.busy) return; const q=G.q[G.cur];
   if(!$('optVoice').checked){ $('optVoice').checked=true; paintSpeaker(); }
-  say(`${q.t==='E'?'Empieza con '+G.cur:'Contiene la '+G.cur}. ${q.q}`); };
+  stopRec(); say(`${q.t==='E'?'Empieza con '+G.cur:'Contiene la '+G.cur}. ${q.q}`,resumeListen); };
+function resumeListen(){ if(G&&G.cur&&!G.busy&&!G.paused) handsFree(); }
 /* pausa */
 $('btnPause').onclick=()=>{ if(!G) return; G.paused=true; shutUp(); stopRec(); $('mPause').classList.add('on'); playClip('F26'); };
 $('btnResume').onclick=()=>{ shutUp(); $('mPause').classList.remove('on'); G.paused=false;
-  if(G.resumeNext){ G.resumeNext=false; nextLetter(G.pre||''); G.pre=''; return; }
-  if(G.cur && G.busy){ G.busy=false; setButtons(true); startTimer(); handsFree(); } };
-$('btnQuit').onclick=()=>{ $('mPause').classList.remove('on'); clearInterval(timerId); shutUp(); stopRec(); G=null; show('sWelcome'); };
+  if(G.resumeNext || !G.cur){ G.resumeNext=false; const pr=G.pre||''; G.pre=''; nextLetter(pr); return; }
+  if(G.busy){ G.busy=false; setButtons(true); startTimer(); handsFree(); } };
+$('btnQuit').onclick=()=>{ $('mPause').classList.remove('on'); clearInterval(timerId); shutUp(); stopRec(); musicStop(); G=null; show('sWelcome'); };
 
 /* ================= FIN DE ROSCO ================= */
 function endRosco(pre=''){
@@ -864,9 +926,9 @@ function confetti(){ const cols=['#ffd84a','#ff5fa2','#4f86ff','#20c96b','#ffa62
 /* ================= ARRANQUE ================= */
 $('btnStart').onclick=()=>{
   try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)(); actx.resume(); }catch(e){}
-  ensureCtx()&&actx.resume&&actx.resume(); newGame(); S.idx=0; introPlayer();
+  ensureCtx()&&actx.resume&&actx.resume(); musicStart(); newGame(); S.idx=0; introPlayer();
 };
-$('btnAgain').onclick=()=>{ shutUp(); show('sWelcome'); };
+$('btnAgain').onclick=()=>{ shutUp(); musicStop(); show('sWelcome'); };
 </script>
 </body>
 </html>
