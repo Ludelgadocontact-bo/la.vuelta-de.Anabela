@@ -133,6 +133,47 @@ tr.win td{color:var(--gold)}
 .live-badge{display:inline-block;font-size:11px;font-weight:800;background:#e0264f;border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:middle}
 .kbtip{display:none;margin-top:10px;background:#20c96b;color:#062b16;border-radius:14px;padding:10px 12px;font-weight:800;font-size:15px;text-align:center;line-height:1.35}
 .kbtip.on{display:block;animation:micp 1s infinite}
+.draw-spin{font-family:'Baloo 2';font-weight:800;font-size:clamp(40px,12vw,68px);text-align:center;margin:26px 0 10px;min-height:1.2em}
+.draw-list{list-style:none;display:grid;gap:10px;margin-top:10px;counter-reset:n}
+.draw-list li{counter-increment:n;display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;
+  font-family:'Baloo 2';font-weight:800;font-size:22px;animation:fade .4s ease}
+.draw-list li::before{content:counter(n)'º';display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--gold);color:#3a2300;font-size:18px;flex:0 0 38px}
+
+/* ===== ESTÉTICA ANABELA: estudio de tele con luces de neón ===== */
+:root{--neon-pink:#ff4fd8;--neon-cyan:#3fe7ff;--neon-violet:#9b5cff;--holo:linear-gradient(115deg,#ffb3ec 0%,#c9a7ff 25%,#9ef5e1 50%,#a9d8ff 72%,#ffc7f0 100%)}
+body{background:
+  radial-gradient(ellipse 60% 35% at 15% -5%,rgba(63,231,255,.35),transparent 70%),
+  radial-gradient(ellipse 60% 35% at 85% -5%,rgba(255,79,216,.35),transparent 70%),
+  radial-gradient(ellipse 80% 40% at 50% 105%,rgba(155,92,255,.45),transparent 70%),
+  linear-gradient(180deg,#140a45 0%,#0c0630 60%,#08041f 100%) fixed}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background-image:radial-gradient(2px 2px at 12% 18%,#fff,transparent),radial-gradient(1.5px 1.5px at 78% 12%,#ffd84a,transparent),
+  radial-gradient(2px 2px at 64% 34%,#3fe7ff,transparent),radial-gradient(1.5px 1.5px at 28% 62%,#ff4fd8,transparent),
+  radial-gradient(2px 2px at 90% 70%,#fff,transparent),radial-gradient(1.5px 1.5px at 8% 88%,#3fe7ff,transparent)}
+.wrap{position:relative;z-index:1}
+.logo .big{background:linear-gradient(180deg,#fff 0%,#ffe680 40%,#ff9de6 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 10px rgba(255,79,216,.55)) drop-shadow(0 0 22px rgba(63,231,255,.35))}
+.logo .sub{background:linear-gradient(90deg,var(--neon-pink),var(--neon-violet),var(--neon-cyan));box-shadow:0 0 16px rgba(255,79,216,.6)}
+.card{background:rgba(20,10,60,.55);border:1.5px solid transparent;
+  background-image:linear-gradient(rgba(20,10,60,.75),rgba(20,10,60,.75)),linear-gradient(120deg,var(--neon-pink),var(--neon-violet),var(--neon-cyan));
+  background-origin:border-box;background-clip:padding-box,border-box;box-shadow:0 0 18px rgba(155,92,255,.35)}
+.avatar{background:conic-gradient(var(--neon-pink),var(--neon-violet),var(--neon-cyan),#ffd84a,var(--neon-pink));padding:3px;box-shadow:0 0 14px rgba(255,79,216,.7)}
+.avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;border:2px solid #140a45}
+.avatar{flex:0 0 58px;height:58px}
+.bubble small{color:#d1209e}
+.btn.gold{background:var(--holo);color:#2a0f5a;box-shadow:0 5px 0 #7b4fc9,0 0 18px rgba(255,179,236,.55)}
+.btn{background:linear-gradient(180deg,#5b8bff,#3a2fd6);box-shadow:0 5px 0 #23188f,0 0 14px rgba(63,231,255,.35)}
+.btn.orange{background:linear-gradient(180deg,#ff7ad9,#d63bb0);box-shadow:0 5px 0 #8c1f72,0 0 14px rgba(255,79,216,.45)}
+.hero{position:relative;border-radius:22px;overflow:hidden;margin:12px 0 4px;aspect-ratio:16/9;
+  box-shadow:0 0 0 2px rgba(255,255,255,.15),0 0 24px rgba(255,79,216,.55),0 0 46px rgba(63,231,255,.3)}
+.hero video,.hero img{width:100%;height:100%;object-fit:cover;display:block}
+.onair{position:absolute;top:10px;left:10px;background:#ff2d55;color:#fff;font:800 12px 'Nunito';letter-spacing:1px;padding:4px 10px;border-radius:999px;box-shadow:0 0 12px rgba(255,45,85,.8)}
+.letter{background:radial-gradient(circle at 35% 30%,#6fdcff,#2a5bff);box-shadow:0 0 10px rgba(63,231,255,.65),inset 0 -3px 0 rgba(0,0,0,.25)}
+.letter.ok{box-shadow:0 0 12px rgba(32,201,107,.8)} .letter.bad{box-shadow:0 0 12px rgba(255,64,87,.8)} .letter.pass{box-shadow:0 0 12px rgba(255,166,43,.8)}
+.center{background:radial-gradient(circle,#24105e,#0d0633);box-shadow:inset 0 0 30px rgba(0,0,0,.6),0 0 0 3px rgba(255,79,216,.35),0 0 28px rgba(155,92,255,.5)}
+.draw-list li{background:rgba(20,10,60,.6);box-shadow:0 0 12px rgba(155,92,255,.35)}
+.draw-list li::before{background:var(--holo)}
+
 .modal{position:fixed;inset:0;background:rgba(10,5,30,.8);display:none;place-items:center;z-index:60;padding:20px}
 .modal.on{display:grid}
 .modal .card{max-width:420px;width:100%;background:#24125f}
@@ -145,7 +186,7 @@ tr.win td{color:var(--gold)}
 <section id="sWelcome" class="screen on">
   <div class="logo"><div class="big">LA VUELTA</div><div class="sub">de Anabela</div></div>
   <div class="card host">
-    <div class="avatar"><span>A</span></div>
+    <div class="avatar"><img src="anabela-cara.jpg" alt="Anabela"></div>
     <div class="bubble"><small>Anabela · conductora</small><span id="welcomeTxt"></span></div>
   </div>
   <div class="card">
@@ -206,13 +247,32 @@ tr.win td{color:var(--gold)}
   <button class="btn gold wide" id="btnStart">🎬 ¡Que empiece el show!</button>
 </section>
 
+<!-- PRESENTACIÓN DE ANABELA -->
+<section id="sPresent" class="screen">
+  <div class="logo"><div class="big">LA VUELTA</div><div class="sub">de Anabela</div></div>
+  <div class="hero"><video src="anabela-loop.mp4" poster="anabela-estudio.jpg" autoplay muted loop playsinline></video><span class="onair">● EN VIVO</span></div>
+  <div class="card host mt">
+    <div class="avatar"><img src="anabela-cara.jpg" alt="Anabela"></div>
+    <div class="bubble"><small>Anabela · conductora</small><span id="presentTxt"></span></div>
+  </div>
+  <button class="btn gold wide mt" id="btnDraw">¡Sortear quién empieza! 🎲</button>
+</section>
+
+<!-- SORTEO DEL ORDEN -->
+<section id="sDraw" class="screen">
+  <div class="logo"><div class="big" style="font-size:34px">EL SORTEO</div><div class="sub">¿Quién empieza?</div></div>
+  <div class="draw-spin" id="drawSpin">🎲</div>
+  <ol class="draw-list" id="drawList"></ol>
+  <button class="btn gold wide mt" id="btnDrawGo" style="visibility:hidden">▶ ¡Arrancamos!</button>
+</section>
+
 <!-- PRESENTACIÓN DE JUGADOR -->
 <section id="sIntro" class="screen">
   <div class="logo"><div class="big" style="font-size:34px">LA VUELTA</div><div class="sub">de Anabela</div></div>
   <div class="intro-sub" id="introNum"></div>
   <div class="intro-name" id="introName"></div>
   <div class="card host">
-    <div class="avatar"><span>A</span></div>
+    <div class="avatar"><img src="anabela-cara.jpg" alt="Anabela"></div>
     <div class="bubble"><small>Anabela · conductora</small><span id="introTxt"></span></div>
   </div>
   <p class="center-txt" style="color:var(--muted);font-weight:700;margin:8px 0 14px">Los demás: ¡silencio en la tribuna! No vale soplar 🤐</p>
@@ -236,7 +296,7 @@ tr.win td{color:var(--gold)}
     </div>
   </div>
   <div class="card host qbox">
-    <div class="avatar"><span>A</span></div>
+    <div class="avatar"><img src="anabela-cara.jpg" alt="Anabela"></div>
     <div class="bubble"><small>Anabela · conductora</small><span class="qtype" id="gType"></span><div id="gQ"></div></div>
   </div>
   <div class="hint" id="gHint"></div>
@@ -275,7 +335,7 @@ tr.win td{color:var(--gold)}
     <div style="color:#ffc67a"><b id="reNo"></b><span id="reNoLbl">sin responder</span></div>
   </div>
   <div class="card host">
-    <div class="avatar"><span>A</span></div>
+    <div class="avatar"><img src="anabela-cara.jpg" alt="Anabela"></div>
     <div class="bubble"><small>Anabela · conductora</small><span id="reTxt"></span></div>
   </div>
   <div class="card" id="reTable"></div>
@@ -286,7 +346,7 @@ tr.win td{color:var(--gold)}
 <section id="sFinal" class="screen">
   <div class="logo"><div class="big" style="font-size:38px">🏆 GRAN FINAL 🏆</div></div>
   <div class="card host">
-    <div class="avatar"><span>A</span></div>
+    <div class="avatar"><img src="anabela-cara.jpg" alt="Anabela"></div>
     <div class="bubble"><small>Anabela · conductora</small><span id="fTxt"></span></div>
   </div>
   <div class="winner" id="fWinner"></div>
@@ -577,7 +637,7 @@ const MUS={on:false,bus:null,gain:null,timer:null,next:0,step:0};
 const PROG=[[48,[64,67,72]],[45,[64,69,72]],[41,[65,69,72]],[43,[62,67,71]]]; // Do – La menor – Fa – Sol
 const mtof=m=>440*Math.pow(2,(m-69)/12);
 const EIGHTH=60/104/2;
-function musicLevel(){ if(!MUS.on||!actx) return; const v = (talking||listening) ? 0.06 : 0.22; MUS.gain.gain.setTargetAtTime(v,actx.currentTime,0.25); }
+function musicLevel(){ if(!MUS.on||!actx) return; const v = listening ? 0.008 : (talking ? 0.06 : 0.22); MUS.gain.gain.setTargetAtTime(v,actx.currentTime,0.25); }
 function musicStart(){
   if(MUS.on || !$('optMusic').checked || !ensureCtx()) return;
   MUS.on=true; MUS.gain=actx.createGain(); MUS.gain.gain.value=0.0001;
@@ -661,24 +721,29 @@ function shutUp(){ speechGen++; try{speechSynthesis.cancel()}catch(e){} stopClip
 /* ================= MICRÓFONO DEL CELULAR =================
    Usa el reconocimiento de voz del navegador (Chrome en Android, Safari en iPhone).
    La primera vez, el teléfono pide permiso para usar el micrófono. */
-let REC=null, recAlts=[], recGot=false, micDenied=false, recMode='game', recInterim='';
+let recWanted=false;
+let REC=null, recAlts=[], recGot=false, micDenied=false, recMode='game', recInterim='', recHeard=[], recRestarts=0;
+const FILLERS=new Set(['eh','ehh','em','emm','mm','mmm','este','esto','a','ver','creo','que','es','la','el','los','las','un','una','mmm','ah','ahh','o','sea','bueno','tipo']);
+const onlyFiller = t => norm(t).split(' ').filter(Boolean).every(w=>FILLERS.has(w));
+const curAnswers = () => (G&&G.cur&&G.q&&G.q[G.cur]) ? G.q[G.cur].a : null;
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recLang = /^es/i.test(navigator.language||'') ? navigator.language : 'es-ES';
 function paintMic(){ try{musicLevel()}catch(e){}
   $('btnMic').classList.toggle('live',listening);
-  $('btnMic').innerHTML = listening ? '🟢 Te escucho… <span class="live-badge">EN VIVO</span>' : '🎤 Tocá para hablar';
+  $('btnMic').innerHTML = listening ? '🟢 Te escucho… hablá fuerte y claro <span class="live-badge">EN VIVO</span>' : '🎤 Tocá para hablar';
 }
 function buildRec(){
   if(!SR) return null;
-  const r=new SR(); r.lang=recLang; r.interimResults=true; r.continuous=false; r.maxAlternatives=4;
-  r.onstart=()=>{ listening=true; recGot=false; recAlts=[]; recInterim=''; paintMic(); };
+  const r=new SR(); r.lang=recLang; r.interimResults=true; r.continuous=false; r.maxAlternatives=5;
+  r.onstart=()=>{ listening=true; recGot=false; recAlts=[]; recInterim=''; recHeard=[]; paintMic(); };
   r.onresult=e=>{
     let txt='';
     for(let i=e.resultIndex;i<e.results.length;i++){
       const res=e.results[i];
       if(recMode==='game' && isEcho(res[0].transcript)) continue;     // es Anabela que se escucha por el parlante
       txt+=res[0].transcript;
-      if(res.isFinal){ recGot=true; for(let k=0;k<res.length;k++) recAlts.push(res[k].transcript); }
+      for(let k=0;k<res.length;k++) if(res[k].transcript && !recHeard.includes(res[k].transcript)) recHeard.push(res[k].transcript);
+      if(res.isFinal && !onlyFiller(res[0].transcript)){ recGot=true; for(let k=0;k<res.length;k++) recAlts.push(res[k].transcript); }
     }
     if(recMode==='game' && !txt.trim()) return;
     if(recMode==='game' && talking) shutUp();                          // la interrumpieron: Anabela se calla
@@ -686,15 +751,22 @@ function buildRec(){
     if(recMode==='test') $('micTestOut').textContent='Escuché: «'+txt.trim()+'»';
     else $('ansIn').value=txt.trim();
     // "paso" se toma al instante, sin esperar
-    if(recMode==='game' && saysPass(txt)){ recGot=true; recAlts=['paso']; try{REC.stop()}catch(e){} }
+    if(recMode==='game' && saysPass(txt)){ recGot=true; recAlts=['paso']; try{REC.stop()}catch(e){} return; }
+    // si cualquier versión de lo escuchado ya es la respuesta correcta, se toma al instante
+    const ans=curAnswers();
+    if(recMode==='game' && ans && recHeard.some(t=>isCorrect(t,ans))){ recGot=true; recAlts=recHeard.slice(); try{REC.abort()}catch(e){} voiceSubmit(recAlts); }
   };
   r.onerror=e=>{
     if(e.error==='not-allowed'||e.error==='service-not-allowed'){ micDenied=true; $('mMic').classList.add('on'); }
+    else if(e.error==='audio-capture'){ $('kbTip').textContent='🎤 Otra app está usando el micrófono. Cerrala y tocá de nuevo el micrófono.'; $('kbTip').classList.add('on'); }
+    else if(e.error==='network'){ $('kbTip').textContent='📶 Sin internet el micrófono no entiende. Revisá la conexión o escribí la respuesta.'; $('kbTip').classList.add('on'); }
   };
   r.onend=()=>{
     listening=false; paintMic();
     // en iPhone a veces no llega la versión "final": usamos lo último que se escuchó
-    if(!recGot && recInterim){ recGot=true; recAlts=[recInterim]; }
+    if(!recGot && recInterim && !onlyFiller(recInterim)){ recGot=true; recAlts=[recInterim]; }
+    // se prueban todas las versiones que se escucharon, no solo la última
+    if(recGot && recMode==='game') recHeard.forEach(t=>{ if(!recAlts.includes(t) && !onlyFiller(t)) recAlts.push(t); });
     if(recMode==='test'){
       if(recGot) say('¡Te escucho perfecto!');
       else if(!micDenied) $('micTestOut').textContent='No escuché nada. Probá de nuevo, más cerca del celu.';
@@ -702,8 +774,8 @@ function buildRec(){
     }
     if(recGot && recAlts.length){ voiceSubmit(recAlts.slice()); return; }
     // manos libres: si no dijo nada y el reloj sigue corriendo, vuelve a escuchar
-    if($('optHands').checked && G && G.cur && !G.busy && !G.paused && G.time>1 && !micDenied)
-      setTimeout(()=>{ if(G&&G.cur&&!G.busy&&!G.paused&&!listening) startRec('game'); },250);
+    if(G && G.cur && !G.busy && !G.paused && G.time>1 && !micDenied && ($('optHands').checked || recWanted))
+      setTimeout(()=>{ if(G&&G.cur&&!G.busy&&!G.paused&&!listening) startRec('game'); },200);
   };
   return r;
 }
@@ -712,12 +784,12 @@ function startRec(mode){
   recMode=mode||'game';
   try{ if(!REC) REC=buildRec(); if(recMode!=='game'||!talking||!$('optBarge').checked) shutUp(); REC.start(); return true; }catch(e){ return false; }
 }
-function stopRec(){ try{ if(REC&&listening) REC.abort(); }catch(e){} listening=false; paintMic(); }
+function stopRec(){ recWanted=false; try{ if(REC&&listening) REC.abort(); }catch(e){} listening=false; paintMic(); }
 
 $('btnMic').onclick=()=>{
   if(!G||$('btnAnswer').disabled) return;
-  if(listening){ try{REC.stop()}catch(e){} return; }
-  $('ansIn').value=''; shutUp();
+  if(listening){ recWanted=false; try{REC.stop()}catch(e){} return; }
+  $('ansIn').value=''; shutUp(); recWanted=true;
   if(!startRec('game')) startKbVoice();
 };
 $('btnMicTest').onclick=()=>{
@@ -729,7 +801,7 @@ $('btnMicTest').onclick=()=>{
 /* Plan B: el dictado del teclado, por si el navegador no reconoce voz */
 let kbVoice=false, kbTimer=null;
 function startKbVoice(){
-  kbVoice=true; $('ansIn').value=''; $('kbTip').classList.add('on');
+  kbVoice=true; $('ansIn').value=''; $('kbTip').innerHTML='🎤 Tocá el <b>micrófono del teclado</b> y decí tu respuesta.<br>Cuando termines de hablar, Anabela la evalúa sola.'; $('kbTip').classList.add('on');
   $('btnMic').classList.add('live'); $('btnMic').innerHTML='🟢 Hablá con el 🎤 del teclado';
   try{ $('ansIn').focus(); }catch(e){}
 }
@@ -790,15 +862,36 @@ const badOf = ps => LETTERS.filter(L=>ps.state[L]==='bad').length;
 const fmt = s => { s=Math.max(0,Math.ceil(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
 function eligible(i){ const ps=S.P[i]; return S.round===1 || (ps.left>0 && pendingOf(ps).length>0); }
 
+/* ================= PRESENTACIÓN Y SORTEO ================= */
+const PRESENT_TXT = '¡Muy, pero muy buenas! Bienvenidos a La Vuelta de Anabela. Yo soy Anabela, su conductora. Cada jugador tiene su rosco, quince segundos por pregunta y tres comodines. ¿Están listos? ¡Que empiece el show!';
+function presentShow(){ $('presentTxt').textContent = PRESENT_TXT; show('sPresent'); seq(['F01']); }
+$('btnDraw').onclick=()=>{ shutUp(); ensureCtx()&&actx.resume&&actx.resume(); drawOrder(); };
+function drawOrder(){
+  // orden al azar de todos los jugadores; cada uno conserva su color
+  S.P.forEach((p,i)=>{ if(!p.color) p.color=COLORS[i]; });
+  const order=shuffle(S.P.slice());
+  $('drawList').innerHTML=''; $('btnDrawGo').style.visibility='hidden'; show('sDraw');
+  const names=S.P.map(p=>p.name); let k=0;
+  const spin=setInterval(()=>{ $('drawSpin').textContent=names[k++%names.length]; $('drawSpin').style.color=S.P[k%S.P.length].color; sfx.tick(); },110);
+  setTimeout(()=>{ clearInterval(spin);
+    order.forEach((p,i)=>setTimeout(()=>{
+      if(i===0){ $('drawSpin').textContent='¡Empieza '+p.name+'!'; $('drawSpin').style.color=p.color; sfx.ok(); }
+      const li=document.createElement('li'); li.textContent=p.name; li.style.color=p.color; $('drawList').appendChild(li);
+      if(i===order.length-1){ S.P=order; S.idx=0; $('btnDrawGo').style.visibility='visible'; }
+    }, i*650));
+  },2200);
+}
+$('btnDrawGo').onclick=()=>{ shutUp(); introPlayer(); };
+
 /* ================= PRESENTAR JUGADOR ================= */
 function introPlayer(){
   const ps=S.P[S.idx];
   $('introNum').textContent = `${S.round===1?'Primera':'Segunda'} vuelta · Participante ${S.idx+1} de ${S.P.length}`;
   $('introName').textContent = ps.name;
-  $('introName').style.color = COLORS[S.idx];
+  $('introName').style.color = S.P[S.idx].color||COLORS[S.idx];
   const prep = ps.f?'Preparada':'Preparado';
   let clips;
-  if(S.round===1) clips = S.idx===0 ? ['F01','F02'] : [pick(['F03','F04'])];
+  if(S.round===1) clips = S.idx===0 ? ['F02'] : [pick(['F03','F04'])];
   else clips = S.firstOfRound ? ['F16',pick(['F03','F04'])] : [pick(['F03','F04'])];
   S.firstOfRound=false;
   const extra = S.round===2 ? ` Le quedan ${pendingOf(ps).length} letras y ${fmt(ps.left)} de reloj.` : ` Tiene ${fmt(ps.left)} para todo el rosco.`;
@@ -823,7 +916,7 @@ function startTurn(){
   G={ ps, q:ps.q, com:ps.com, queue: S.round===1 ? [...LETTERS] : pendingOf(ps), cur:null, time:QTIME(),
       busy:true, paused:false, live:false };
   buildRosco(); LETTERS.forEach(paintLetter);
-  $('gWho').textContent=ps.name; $('gWho').style.color=COLORS[S.idx];
+  $('gWho').textContent=ps.name; $('gWho').style.color=ps.color||COLORS[S.idx];
   show('sGame'); updateTop(); drawTime();
   setTimeout(()=>nextLetter(),700);
 }
@@ -939,7 +1032,7 @@ function endTurn(pre=''){
   clearInterval(timerId); stopRec(); shutUp();
   const ps=G.ps, ok=okOf(ps), bad=badOf(ps), pend=pendingOf(ps).length;
   $('reTitle').textContent = S.round===1 ? '¡FIN DE LA PRIMERA VUELTA!' : '¡FIN DEL ROSCO!';
-  $('reName').textContent=ps.name; $('reName').style.color=COLORS[S.idx];
+  $('reName').textContent=ps.name; $('reName').style.color=ps.color||COLORS[S.idx];
   $('rePts').textContent=ok; $('reOk').textContent=ok; $('reBad').textContent=bad;
   $('reNo').textContent = S.round===1 ? LETTERS.filter(L=>ps.state[L]==='pass').length : LETTERS.length-ok-bad;
   $('reNoLbl').textContent = S.round===1 ? 'pasadas' : 'sin responder';
@@ -964,7 +1057,7 @@ $('btnNext').onclick=()=>{ shutUp();
   finale();
 };
 
-function ranking(){ return S.P.map((p,i)=>({name:p.name,ok:okOf(p),bad:badOf(p),no:LETTERS.length-okOf(p)-badOf(p),left:p.left,color:COLORS[i]}))
+function ranking(){ return S.P.map((p,i)=>({name:p.name,ok:okOf(p),bad:badOf(p),no:LETTERS.length-okOf(p)-badOf(p),left:p.left,color:p.color||COLORS[i]}))
   .sort((a,b)=>b.ok-a.ok||a.bad-b.bad||b.left-a.left); }
 function tableHTML(final){
   const r=ranking(); let pos=0,prev=null;
@@ -993,7 +1086,7 @@ function confetti(){ const cols=['#ffd84a','#ff5fa2','#4f86ff','#20c96b','#ffa62
 /* ================= ARRANQUE ================= */
 $('btnStart').onclick=()=>{
   try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)(); actx.resume(); }catch(e){}
-  ensureCtx()&&actx.resume&&actx.resume(); musicStart(); newGame(); S.idx=0; introPlayer();
+  ensureCtx()&&actx.resume&&actx.resume(); musicStart(); newGame(); S.idx=0; presentShow();
 };
 $('btnAgain').onclick=()=>{ shutUp(); musicStop(); show('sWelcome'); };
 </script>
