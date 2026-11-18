@@ -69,7 +69,7 @@ h1,h2,h3,.title{font-family:'Baloo 2',cursive;letter-spacing:.5px}
 .vuelta{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
 .score{display:flex;gap:6px}
 .chip{border-radius:12px;padding:5px 10px;font-weight:800;font-size:15px;background:rgba(0,0,0,.25)}
-.chip.g{color:#6dffab}.chip.r{color:#ff8b98}.chip.o{color:#ffc67a}
+.chip.g{color:#6dffab}.chip#gLeft{color:#fff;background:rgba(122,85,255,.45)}.chip#gLeft.r{background:#e0264f}.chip.r{color:#ff8b98}.chip.o{color:#ffc67a}
 .rosco{position:relative;width:min(92vw,400px);aspect-ratio:1;margin:6px auto 0}
 .letter{position:absolute;width:11%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;
   font-family:'Baloo 2';font-weight:800;font-size:clamp(13px,3.6vw,19px);transform:translate(-50%,-50%);
@@ -152,10 +152,11 @@ tr.win td{color:var(--gold)}
     <h3 style="margin-bottom:8px">📜 Reglas del juego</h3>
     <ul class="rules">
       <li>🔵 <span>Cada jugador tiene su <b>rosco de la A a la Z</b>, con preguntas distintas.</span></li>
-      <li>⏱️ <span><b>15 segundos</b> por pregunta. Si se acaba el tiempo, la letra se pierde.</span></li>
-      <li>✅ <span>Acierto = <b>1 punto</b>. Error = se pierde la letra (y no se revela la respuesta 🤫).</span></li>
-      <li>🟠 <span><b>¡Paso!</b>: la letra queda pendiente para la <b>segunda vuelta</b>.</span></li>
-      <li>🚫 <span>No hay rebote: nadie puede responder por otro.</span></li>
+      <li>1️⃣ <span><b>Primera vuelta:</b> juega cada uno su rosco completo, uno después del otro.</span></li>
+      <li>2️⃣ <span><b>Segunda vuelta:</b> en el mismo orden, cada uno vuelve a las letras que <b>pasó o erró</b>.</span></li>
+      <li>⏱️ <span>Cada pregunta tiene su tiempo y además cada jugador tiene un <b>reloj total</b> que solo corre en su turno. ¡Decir «paso» rápido ahorra reloj!</span></li>
+      <li>🗣️ <span>Se puede <b>contestar mientras Anabela lee</b>: el reloj ya está corriendo.</span></li>
+      <li>✅ <span>Acierto = <b>1 punto</b>. No se revela la respuesta 🤫. Desempate: menos errores y más reloj sobrante.</span></li>
       <li>🃏 <span>Comodines por jugador: <b>Pista</b>, <b>+10 segundos</b> y <b>Cambiar pregunta</b> (uno de cada).</span></li>
     </ul>
   </div>
@@ -188,7 +189,15 @@ tr.win td{color:var(--gold)}
     <p class="note" id="micNote"></p>
   </div>
   <div class="card">
+    <h3 style="margin-bottom:10px">⏱️ Tiempos</h3>
+    <div class="row"><span class="toggle" style="min-width:150px">Por pregunta</span>
+      <select id="optQTime" class="sel"><option value="15" selected>15 segundos</option><option value="20">20 segundos</option><option value="25">25 segundos</option><option value="30">30 segundos</option></select></div>
+    <div class="row mt"><span class="toggle" style="min-width:150px">Reloj total por jugador</span>
+      <select id="optTotal" class="sel"><option value="120">2 minutos</option><option value="180" selected>3 minutos</option><option value="240">4 minutos</option><option value="300">5 minutos</option></select></div>
+  </div>
+  <div class="card">
     <h3 style="margin-bottom:10px">🎤 Micrófono</h3>
+    <label class="toggle" style="margin-bottom:8px"><input type="checkbox" id="optBarge" checked> Se puede contestar mientras Anabela lee la pregunta</label>
     <label class="toggle"><input type="checkbox" id="optHands" checked> Manos libres: Anabela escucha sola después de cada pregunta</label>
     <button class="btn ghost wide mt" id="btnMicTest" type="button">🎤 Probar micrófono</button>
     <p class="note" id="micTestOut"></p>
@@ -215,7 +224,7 @@ tr.win td{color:var(--gold)}
   <div class="top">
     <div><div class="who" id="gWho"></div><div class="vuelta" id="gVuelta"></div></div>
     <div class="score">
-      <span class="chip g" id="gOk">✓ 0</span><span class="chip r" id="gBad">✗ 0</span><span class="chip o" id="gPass">↻ 0</span>
+      <span class="chip g" id="gOk">✓ 0</span><span class="chip r" id="gBad">✗ 0</span><span class="chip o" id="gPass">↻ 0</span><span class="chip" id="gLeft">⏱ 3:00</span>
     </div>
   </div>
   <div class="rosco" id="rosco">
@@ -256,14 +265,14 @@ tr.win td{color:var(--gold)}
 
 <!-- FIN DE ROSCO -->
 <section id="sRoscoEnd" class="screen">
-  <div class="logo"><div class="big" style="font-size:34px">¡FIN DEL ROSCO!</div></div>
+  <div class="logo"><div class="big" style="font-size:30px" id="reTitle">¡FIN DEL ROSCO!</div></div>
   <div class="intro-name" id="reName" style="font-size:44px;margin-top:6px"></div>
   <div class="big-num" id="rePts"></div>
   <div class="center-txt" style="font-weight:800;color:var(--muted)">puntos</div>
   <div class="stats">
     <div style="color:#6dffab"><b id="reOk"></b>aciertos</div>
     <div style="color:#ff8b98"><b id="reBad"></b>errores</div>
-    <div style="color:#ffc67a"><b id="reNo"></b>sin responder</div>
+    <div style="color:#ffc67a"><b id="reNo"></b><span id="reNoLbl">sin responder</span></div>
   </div>
   <div class="card host">
     <div class="avatar"><span>A</span></div>
@@ -451,6 +460,9 @@ Z:[['E','Hortaliza naranja que comen los conejos',['zanahoria']],
    ['E','Lugar donde se exhiben animales',['zoologico','zoo']],
    ['E','Zapallo chiquito, verde y redondo que en Uruguay se come relleno',['zapallito','zucchini']]]
 };
+/* 270 preguntas nuevas: música, actualidad, instrumentos, historia, geografía, química, cosas de todos los días */
+const EXTRA = [["A", "E", "Instrumento de fuelle y teclado que se toca en la cumbia y el vallenato", ["acordeon"]], ["A", "E", "Sustancia de fórmula H2O, sin color ni olor", ["agua"]], ["A", "E", "Cordillera más larga del mundo, que recorre toda Sudamérica", ["andes", "los andes", "cordillera de los andes"]], ["A", "E", "Continente donde están Egipto, Kenia y Sudáfrica", ["africa"]], ["A", "E", "Lo que hacés con las manos cuando termina un show que te encantó", ["aplaudir", "aplauso", "aplausos"]], ["A", "E", "Nombre de la cantante estadounidense de pop famosa por su colita alta", ["ariana", "ariana grande"]], ["A", "E", "Lo que suena en el celular para despertarte a la mañana", ["alarma", "despertador"]], ["A", "E", "Metal liviano con el que se hacen las latas de refresco", ["aluminio"]], ["A", "E", "Nombre en inglés del equipo de superhéroes de Marvel donde están Iron Man y Thor", ["avengers"]], ["A", "E", "Rey de Macedonia apodado «Magno», que conquistó medio mundo", ["alejandro", "alejandro magno"]], ["B", "E", "Cantante puertorriqueño cuyo nombre artístico tiene un conejo", ["bad bunny"]], ["B", "E", "Productor argentino famoso por sus «Music Sessions» con gorra y lentes", ["bizarrap", "bzrp"]], ["B", "E", "Tambor grande que marca el ritmo en la murga", ["bombo"]], ["B", "E", "Capital de Argentina", ["buenos aires"]], ["B", "E", "País europeo de los waffles y los chocolates, cuya capital es Bruselas", ["belgica"]], ["B", "E", "Apellido del libertador venezolano Simón", ["bolivar"]], ["B", "E", "Lo que hacés en una fiesta cuando suena tu canción favorita", ["bailar"]], ["B", "E", "Superhéroe de Ciudad Gótica vestido de murciélago", ["batman"]], ["B", "E", "Apellido del papa Francisco antes de ser papa: Jorge Mario...", ["bergoglio"]], ["B", "E", "Lo que se le termina al celular cuando te olvidás de cargarlo", ["bateria"]], ["C", "E", "Banda uruguaya de Roberto Musso: El ... de Nos", ["cuarteto", "cuarteto de nos", "el cuarteto de nos"]], ["C", "E", "Banda británica de Chris Martin, famosa por «Yellow»", ["coldplay"]], ["C", "E", "Instrumento de viento de madera, negro y con llaves plateadas", ["clarinete"]], ["C", "E", "Elemento químico del que están hechos el carbón y los diamantes", ["carbono"]], ["C", "E", "País de la hoja de arce, cuya capital es Ottawa", ["canada"]], ["C", "E", "Apellido del navegante que llegó a América en 1492", ["colon", "cristobal colon"]], ["C", "E", "Lo que hacés con un cuchillo y una cebolla", ["cortar", "picar"]], ["C", "E", "Torneo de selecciones de Sudamérica que ganó Argentina en 2024", ["copa america", "copa"]], ["C", "E", "Princesa que pierde un zapato de cristal a medianoche", ["cenicienta"]], ["C", "E", "Lo que hacés en la ducha aunque desafines", ["cantar"]], ["D", "E", "Trapero argentino de «Goteo» y «She Don't Give a FO»", ["duki"]], ["D", "E", "Lo que tienen los tiburones, muy filosos y en varias filas", ["dientes", "diente"]], ["D", "E", "Conde vampiro de Transilvania", ["dracula"]], ["D", "E", "Lo que hacés de noche en la cama", ["dormir"]], ["D", "E", "Último mes del año", ["diciembre"]], ["D", "E", "Piedra preciosa, la más dura de la naturaleza", ["diamante"]], ["D", "E", "Ciudad de Emiratos Árabes donde está el edificio más alto del mundo", ["dubai"]], ["D", "E", "Dulce uruguayo que se unta en el pan y va en los alfajores", ["dulce de leche", "dulce"]], ["D", "E", "Aplicación del búho verde para aprender idiomas", ["duolingo"]], ["D", "E", "Ritmo dominicano que se escucha en muchas canciones de reguetón", ["dembow"]], ["E", "E", "Nombre del cantante británico pelirrojo de «Shape of You»", ["ed", "ed sheeran"]], ["E", "E", "Rapero estadounidense de «Lose Yourself»", ["eminem"]], ["E", "E", "Tipo de guitarra que necesita un amplificador para sonar fuerte", ["electrica", "guitarra electrica"]], ["E", "E", "Partícula del átomo con carga negativa", ["electron"]], ["E", "E", "País africano de las pirámides y el río Nilo", ["egipto"]], ["E", "E", "Apellido del científico de la teoría de la relatividad, el de los pelos parados", ["einstein", "albert einstein"]], ["E", "E", "Lo que hacés con un mensaje después de escribirlo", ["enviar", "mandar"]], ["E", "E", "Nombre del dueño de Tesla y de la red social X", ["elon", "elon musk"]], ["E", "E", "Reina de Arendelle que tiene poderes de hielo", ["elsa"]], ["E", "E", "Lo que hacés con los apuntes la noche antes de la prueba", ["estudiar"]], ["F", "E", "Nombre del músico rosarino de «Mariposa Tecknicolor»", ["fito", "fito paez"]], ["F", "E", "Instrumento de viento plateado que se toca de costado", ["flauta", "flauta traversa"]], ["F", "E", "Proceso con el que las plantas fabrican su alimento usando la luz del sol", ["fotosintesis"]], ["F", "E", "País nórdico de los mil lagos, cuya capital es Helsinki", ["finlandia"]], ["F", "E", "Nombre de la pintora mexicana famosa por sus autorretratos y sus cejas unidas", ["frida", "frida kahlo"]], ["F", "E", "Lo que hacés con el celular en el cumpleaños para tener el video del «feliz cumpleaños»", ["filmar"]], ["F", "E", "Sigla de la organización que manda en el fútbol mundial y organiza el Mundial", ["fifa"]], ["F", "E", "Película de Disney de 2013 con dos hermanas princesas y un muñeco de nieve", ["frozen"]], ["F", "E", "Animal marino que aplaude con las aletas en los acuarios", ["foca"]], ["F", "E", "Parte de la heladera donde está el hielo", ["freezer", "frizer"]], ["G", "E", "Premio más famoso de la música, con forma de gramófono dorado", ["grammy", "grammys"]], ["G", "E", "Instrumento de percusión rayado que se raspa en la cumbia", ["guiro"]], ["G", "E", "Estado de la materia del vapor y del aire", ["gas", "gaseoso"]], ["G", "E", "País europeo cuya capital es Atenas", ["grecia"]], ["G", "E", "Nombre del astrónomo italiano que apuntó el telescopio al cielo", ["galileo", "galileo galilei"]], ["G", "E", "Lo que hacés con la plata en el shopping", ["gastar"]], ["G", "E", "Empresa del buscador de internet más usado del mundo", ["google"]], ["G", "E", "Monstruo japonés gigante que sale del mar y destruye ciudades", ["godzilla"]], ["G", "E", "Lo que hacés cuando cerrás un solo ojo para hacerte el cómplice", ["guiño", "guinar", "guiñar", "guino"]], ["G", "E", "Cantante argentina de cumbia de «No me arrepiento de este amor»", ["gilda"]], ["H", "E", "Género musical nacido en Nueva York, con rap, DJ y break dance", ["hip hop", "hiphop"]], ["H", "E", "Elemento químico más liviano del universo, la H del agua", ["hidrogeno"]], ["H", "E", "Metal de los clavos, que se oxida y queda color marrón", ["hierro"]], ["H", "E", "País centroamericano cuya capital es Tegucigalpa", ["honduras"]], ["H", "E", "Poeta griego que escribió la Ilíada y la Odisea", ["homero"]], ["H", "E", "Lo que hacés con una torta en el horno", ["hornear"]], ["H", "E", "Palabra que va con el numeral # en las redes sociales", ["hashtag"]], ["H", "E", "Superhéroe verde y gigante de Marvel que se enoja fácil", ["hulk"]], ["H", "E", "Electrodoméstico que mantiene fría la comida", ["heladera"]], ["H", "E", "Canción oficial de un país que se canta antes de los partidos", ["himno"]], ["I", "E", "Canción de John Lennon de 1971 que invita a imaginar un mundo en paz", ["imagine"]], ["I", "E", "Objeto que atrae los clips y los metales", ["iman"]], ["I", "E", "País asiático donde está el Taj Mahal", ["india"]], ["I", "E", "Pueblo que construyó Machu Picchu", ["inca", "incas"]], ["I", "E", "Lo que hacés con tus amigos cuando hacés un cumpleaños", ["invitar"]], ["I", "E", "Teléfono de Apple", ["iphone"]], ["I", "E", "Arqueólogo de película con sombrero y látigo, ... Jones", ["indiana", "indiana jones"]], ["I", "E", "Lo que te pasa cuando no podés dormir en toda la noche", ["insomnio"]], ["I", "E", "Isla del trébol verde, cuya capital es Dublín", ["irlanda"]], ["I", "E", "Estación más fría del año", ["invierno"]], ["J", "E", "Nombre del cantante canadiense de «Baby» y «Sorry»", ["justin", "justin bieber"]], ["J", "E", "Cantante colombiano de reguetón de «Mi gente»: ... Balvin", ["j balvin", "j", "jbalvin"]], ["J", "E", "Género musical de Nueva Orleans con saxo, trompeta e improvisación", ["jazz"]], ["J", "E", "Isla del Caribe donde nació Bob Marley", ["jamaica"]], ["J", "E", "Nombre de la heroína francesa «de Arco»", ["juana", "juana de arco"]], ["J", "E", "Lo que hacés con la plata en una alcancía", ["juntar", "juntarla"]], ["J", "E", "Mes en el que arrancó el Mundial de 2026", ["junio"]], ["J", "E", "Nombre en inglés del villano payaso enemigo de Batman", ["joker", "guason"]], ["J", "E", "Parte de la casa con pasto y flores", ["jardin"]], ["J", "E", "Fiambre que va con el queso en el sándwich", ["jamon"]], ["K", "E", "Nombre de la cantante colombiana de «Tusa» y «Provenza»", ["karol", "karol g"]], ["K", "E", "Música pop de Corea del Sur, la de BTS y Blackpink", ["kpop", "k pop"]], ["K", "E", "Escala de temperatura que usan los científicos, con el cero absoluto", ["kelvin"]], ["K", "E", "País del Golfo Pérsico, rico en petróleo, cuya capital lleva su mismo nombre", ["kuwait"]], ["K", "E", "Apellido del presidente de Estados Unidos asesinado en 1963", ["kennedy"]], ["K", "E", "Negocio chiquito donde comprás alfajores y caramelos", ["kiosco", "kiosko", "quiosco"]], ["K", "E", "Nombre del delantero francés Mbappé", ["kylian"]], ["K", "E", "Gorila gigante de película que se sube al Empire State", ["king kong", "kong"]], ["K", "E", "Fruta peluda por fuera y verde por dentro", ["kiwi"]], ["K", "E", "Ropa tradicional japonesa, larga y con un cinturón ancho", ["kimono"]], ["L", "E", "Cantante argentina de «Disciplina», ex «Casi Ángeles»", ["lali", "lali esposito"]], ["L", "E", "Cantante cordobés de cuarteto de «La morocha»", ["luck ra", "luckra"]], ["L", "E", "Metal liviano con el que se hacen las baterías de los celulares", ["litio"]], ["L", "E", "Capital de Portugal", ["lisboa"]], ["L", "E", "Nombre del genio italiano que pintó la Mona Lisa", ["leonardo", "leonardo da vinci"]], ["L", "E", "Lo que hacés con un libro", ["leer"]], ["L", "E", "Ciudad inglesa de los Beatles, con un club de fútbol rojo", ["liverpool"]], ["L", "E", "Nombre del joven Skywalker de la guerra de las galaxias", ["luke", "luke skywalker"]], ["L", "E", "Lo que te ponés para ver mejor", ["lentes", "lentes de contacto", "lente"]], ["L", "E", "Lo que hacés con un helado de palito", ["lamer", "lamerlo"]], ["M", "E", "Cantante que llenó River y canta «Corazón vacío»", ["maria", "maria becerra", "becerra"]], ["M", "E", "Nombre del Rey del Pop, el del paso lunar", ["michael", "michael jackson"]], ["M", "E", "Instrumento de percusión que se sacude, siempre de a dos", ["maracas", "maraca"]], ["M", "E", "Único metal líquido, el de los termómetros viejos", ["mercurio"]], ["M", "E", "País africano cuya capital es Rabat", ["marruecos"]], ["M", "E", "Apellido del líder sudafricano que estuvo preso 27 años y luego fue presidente", ["mandela", "nelson mandela"]], ["M", "E", "Lo que hacés con el chicle", ["masticar", "mascar"]], ["M", "E", "Torneo de fútbol que en 2026 se jugó en Estados Unidos, México y Canadá", ["mundial", "copa del mundo"]], ["M", "E", "Personajes amarillos con lentes de la película Mi villano favorito", ["minions", "minion"]], ["M", "E", "Insecto de alas de colores que antes fue oruga", ["mariposa"]], ["N", "E", "Nombre artístico de la rapera rosarina Nicole Denise Cucco", ["nicki", "nicki nicole"]], ["N", "E", "Lo que son do, re, mi, fa, sol, la y si", ["notas", "notas musicales"]], ["N", "E", "Gas más abundante del aire que respiramos", ["nitrogeno"]], ["N", "E", "Río más largo de África, el de Egipto", ["nilo"]], ["N", "E", "Emperador francés famoso por sus batallas y su sombrero de dos puntas", ["napoleon", "napoleon bonaparte"]], ["N", "E", "Lo que hacés en la piscina", ["nadar"]], ["N", "E", "Empresa japonesa de Mario Bros", ["nintendo"]], ["N", "E", "Mundo mágico al que se llega por un ropero", ["narnia"]], ["N", "E", "Lo que tapa el sol antes de que llueva", ["nube", "nubes"]], ["N", "E", "Parte de la cara que se pone roja cuando hace frío", ["nariz"]], ["Ñ", "C", "El día que viene después de hoy", ["mañana"]], ["Ñ", "C", "Fruta tropical con una corona de hojas", ["piña", "anana"]], ["Ñ", "C", "Lugar alto donde se esquía y hay nieve", ["montaña", "montañas"]], ["Ñ", "C", "Lo que usás para sonarte la nariz", ["pañuelo", "pañuelito"]], ["Ñ", "C", "La persona que tiene un perro y lo saca a pasear", ["dueño", "dueña"]], ["Ñ", "C", "El hermano de tu pareja", ["cuñado", "cuñada"]], ["Ñ", "C", "Lo que le falta al celular en el medio del campo", ["señal"]], ["Ñ", "C", "Ave grande y corredora que no vuela, típica del campo uruguayo", ["ñandu"]], ["Ñ", "C", "El que se sienta al lado tuyo en clase", ["compañero", "compañera"]], ["Ñ", "C", "Estación del año en que se caen las hojas", ["otoño"]], ["O", "E", "Nombre de la cantante de «drivers license»", ["olivia", "olivia rodrigo"]], ["O", "E", "Instrumento enorme de teclas y tubos que suena en las iglesias", ["organo"]], ["O", "E", "Capa de gas que nos protege de los rayos del sol", ["ozono", "capa de ozono"]], ["O", "E", "Capital de Canadá", ["ottawa", "otawa"]], ["O", "E", "Juegos deportivos que nacieron en la antigua Grecia", ["olimpiadas", "olimpicos", "juegos olimpicos", "olimpiada"]], ["O", "E", "Lo que hacés con los oídos", ["oir", "escuchar"]], ["O", "E", "Apellido del presidente uruguayo desde 2025, Yamandú", ["orsi"]], ["O", "E", "Muñeco de nieve que habla en Frozen", ["olaf"]], ["O", "E", "Recipiente donde hervís los fideos", ["olla"]], ["O", "E", "Animal con lana que hace «beee»", ["oveja"]], ["P", "E", "Nombre del cantante cordobés de «Adán y Eva»", ["paulo", "paulo londra"]], ["P", "E", "Instrumento de teclas blancas y negras", ["piano"]], ["P", "E", "Metal precioso que le da nombre al Río de la...", ["plata"]], ["P", "E", "País sudamericano donde está Machu Picchu", ["peru"]], ["P", "E", "Construcciones de Egipto con forma de triángulo", ["piramides", "piramide"]], ["P", "E", "Lo que hacés con la ropa arrugada", ["planchar"]], ["P", "E", "Consola de videojuegos de Sony", ["playstation", "play", "play station"]], ["P", "E", "Pokémon amarillo que tira rayos", ["pikachu"]], ["P", "E", "Lo que abrís cuando llueve", ["paraguas"]], ["P", "E", "Animal muy lento que vive colgado de los árboles", ["perezoso"]], ["Q", "E", "Banda británica de Freddie Mercury", ["queen"]], ["Q", "C", "Conjunto grande de músicos con violines, vientos y un director", ["orquesta"]], ["Q", "C", "Estado del agua cuando sale de la canilla", ["liquido"]], ["Q", "C", "País entre Europa y Asia, cuya capital es Ankara", ["turquia"]], ["Q", "C", "Científico que estudia ruinas y restos antiguos", ["arqueologo", "arqueologa"]], ["Q", "E", "Lo que hacés con el abrigo cuando entrás a un lugar calentito", ["quitar", "quitarse", "quitarlo"]], ["Q", "C", "Deporte de invierno que se hace con tablas en la nieve", ["esqui"]], ["Q", "E", "Amigo del Chavo del Ocho con cachetes inflados", ["quico", "kiko"]], ["Q", "C", "Lugar con hamacas y tobogán para los niños", ["parque", "plaza"]], ["Q", "C", "Bicho que zumba en la oreja y te pica de noche", ["mosquito"]], ["R", "E", "Cantante española de «Despechá»", ["rosalia"]], ["R", "E", "Nombre del Negro, leyenda uruguaya del candombe beat", ["ruben", "ruben rada", "rada"]], ["R", "E", "Tambor de la murga que suena rápido con dos palillos", ["redoblante"]], ["R", "E", "Lo que hacés con botellas y cartones para cuidar el planeta", ["reciclar"]], ["R", "E", "Departamento uruguayo donde está Cabo Polonio", ["rocha"]], ["R", "E", "Cambio profundo y repentino de un gobierno, como la francesa de 1789", ["revolucion"]], ["R", "E", "Ruido que hacés al dormir que no deja dormir a los demás", ["roncar", "ronquido", "ronquidos"]], ["R", "E", "Boxeador de película interpretado por Stallone", ["rocky"]], ["R", "E", "Club de fútbol español que se viste de blanco", ["real madrid", "real"]], ["R", "E", "Camino largo entre ciudades por donde van los autos", ["ruta", "carretera"]], ["S", "E", "Cantante colombiana de «Hips Don't Lie»", ["shakira"]], ["S", "E", "Aplicación de música con logo verde", ["spotify"]], ["S", "E", "Ritmo caribeño de Celia Cruz", ["salsa"]], ["S", "E", "Condimento blanco del mar, el cloruro de sodio", ["sal"]], ["S", "E", "Desierto más grande de África", ["sahara"]], ["S", "E", "Apellido del libertador argentino que cruzó los Andes, José de...", ["san martin"]], ["S", "E", "Lo que hacés con la cuerda en el recreo", ["saltar"]], ["S", "E", "Ogro verde que vive en un pantano", ["shrek"]], ["S", "E", "Apellido de la cantante estadounidense Taylor", ["swift", "taylor swift"]], ["S", "E", "Utensilio de cocina para freír huevos", ["sarten"]], ["T", "E", "Cantante argentina, ex Violetta, de nombre artístico corto", ["tini", "tini stoessel"]], ["T", "E", "Instrumento de metal de tres pistones", ["trompeta"]], ["T", "E", "Cuadro con todos los elementos químicos: la ... periódica", ["tabla", "tabla periodica"]], ["T", "E", "País asiático cuya capital es Bangkok", ["tailandia"]], ["T", "E", "Cuántos eran los Orientales que desembarcaron con Lavalleja en 1825", ["treinta y tres", "33"]], ["T", "E", "Lo que hace la abuela con agujas y lana", ["tejer"]], ["T", "E", "Marca de autos eléctricos de Elon Musk", ["tesla"]], ["T", "E", "Dios nórdico del trueno con un martillo, en Marvel", ["thor"]], ["T", "E", "Recipiente que mantiene el agua caliente para el mate", ["termo"]], ["T", "E", "Animal lento que lleva su casa en la espalda", ["tortuga"]], ["U", "E", "Banda irlandesa de Bono", ["u2", "u dos"]], ["U", "E", "Guitarrita hawaiana de cuatro cuerdas", ["ukelele", "ukulele"]], ["U", "E", "Elemento radiactivo que se usa en las centrales nucleares", ["uranio"]], ["U", "E", "País europeo cuya capital es Kiev", ["ucrania"]], ["U", "E", "Héroe de la Odisea que tardó diez años en volver a casa", ["ulises"]], ["U", "E", "Lo que hacés con el dulce de leche sobre el pan", ["untar"]], ["U", "E", "Nombre del atleta jamaiquino Bolt, el más rápido del mundo", ["usain", "usain bolt"]], ["U", "E", "Película de Pixar donde una casa vuela con globos", ["up"]], ["U", "E", "Ropa igual para todos en el colegio", ["uniforme"]], ["U", "E", "El que llega al final de la carrera", ["ultimo"]], ["V", "E", "Banda uruguaya: La ... Puerca", ["vela", "la vela puerca", "vela puerca"]], ["V", "E", "Lo que sale de la olla cuando hierve el agua", ["vapor"]], ["V", "E", "País más chico del mundo, donde vive el papa", ["vaticano", "ciudad del vaticano"]], ["V", "E", "Navegantes del norte de Europa con barcos de dragón", ["vikingos", "vikingo"]], ["V", "E", "Lo que hacés en las elecciones", ["votar"]], ["V", "E", "Sistema de video que ayuda al árbitro en el fútbol", ["var"]], ["V", "E", "Villano sin nariz de Harry Potter", ["voldemort"]], ["V", "E", "Abertura de la pared con vidrio por donde entra la luz", ["ventana"]], ["V", "E", "Animal que da leche y hace «muuu»", ["vaca"]], ["V", "E", "Baile que se baila en la fiesta de quince", ["vals"]], ["W", "E", "Rapero y freestyler argentino de nombre corto", ["wos"]], ["W", "E", "Masa dulce con cuadraditos que se come con miel", ["waffle", "wafle", "waffles"]], ["W", "E", "Sartén honda china para saltear verduras", ["wok"]], ["W", "E", "Torneo de tenis sobre césped que se juega en Londres", ["wimbledon"]], ["W", "E", "Nombre del creador de Mickey Mouse", ["walt", "walt disney"]], ["W", "E", "Serie de Netflix sobre la hija de la familia Addams, en inglés", ["wednesday"]], ["W", "E", "Unidad de potencia de las lamparitas", ["watt", "vatio", "watts"]], ["W", "E", "Estadio de fútbol más famoso de Londres", ["wembley"]], ["W", "E", "Personaje de lentes y buzo a rayas rojas que hay que encontrar", ["wally"]], ["W", "E", "Mutante de los X-Men con garras de metal", ["wolverine"]], ["X", "C", "Canción que pega fuerte y suena en todas partes", ["exito", "hit"]], ["X", "C", "Lo que hacés con una naranja para sacarle el jugo", ["exprimir"]], ["X", "C", "Prueba que hacen los científicos en el laboratorio", ["experimento"]], ["X", "C", "Estado de Estados Unidos famoso por los vaqueros", ["texas"]], ["X", "C", "Lo que gritás cuando necesitás ayuda urgente", ["auxilio"]], ["X", "C", "Ejercicio de brazos acostado boca abajo", ["flexiones", "flexion"]], ["X", "C", "Ser de otro planeta", ["extraterrestre", "alien"]], ["X", "C", "El que viene después del quinto", ["sexto"]], ["X", "E", "Consola de videojuegos de Microsoft", ["xbox"]], ["X", "C", "Paseo del colegio a otro lugar", ["excursion", "paseo"]], ["Y", "E", "Apellido artístico del cantante colombiano Sebastián, de «Tacones rojos»", ["yatra", "sebastian yatra"]], ["Y", "C", "Rey del reguetón de «Gasolina»: Daddy...", ["yankee", "daddy yankee"]], ["Y", "E", "Barco de lujo de los millonarios", ["yate"]], ["Y", "E", "Península mexicana de Cancún", ["yucatan"]], ["Y", "C", "El que tiene corona y trono", ["rey"]], ["Y", "C", "Lo que hacés cuando alguien necesita una mano", ["ayudar"]], ["Y", "C", "Lugar con arena y mar", ["playa"]], ["Y", "E", "Maestro jedi verde y chiquito", ["yoda"]], ["Y", "C", "El día anterior a hoy", ["ayer"]], ["Y", "C", "El del circo con nariz roja", ["payaso"]], ["Z", "E", "Danza folclórica argentina que se baila con pañuelos", ["zamba"]], ["Z", "E", "Instrumento andino de cañas que se sopla", ["zampoña"]], ["Z", "E", "Metal gris que protege las chapas del óxido", ["zinc", "cinc"]], ["Z", "E", "Ciudad suiza famosa por los bancos", ["zurich"]], ["Z", "E", "Dios griego del rayo, rey del Olimpo", ["zeus"]], ["Z", "E", "Tirarse de cabeza al agua", ["zambullirse", "zambullida"]], ["Z", "E", "Persona que escribe con la mano izquierda", ["zurdo", "zurda"]], ["Z", "E", "Muertos vivientes de las películas de terror", ["zombi", "zombie", "zombis", "zombies"]], ["Z", "E", "Animal blanco y negro que tira un olor feo", ["zorrino"]], ["Z", "E", "Línea que va de un lado al otro, como un rayo", ["zigzag", "zig zag"]]];
+EXTRA.forEach(([L,t,q,a])=>BANK[L].push([t,q,a]));
 const LETTERS = Object.keys(BANK);
 
 /* ================= VOZ GRABADA DE ANABELA =================
@@ -500,7 +512,9 @@ function isCorrect(input,answers){
   const words=norm(input).split(' ').filter(Boolean); if(!words.length) return false;
   // al hablar se suele decir "es Montevideo" o "creo que Montevideo": se prueba cada tramo de hasta 4 palabras
   const cands=[words.join('')];
-  if(words.length<=10) for(let i=0;i<words.length;i++) for(let j=i+1;j<=Math.min(words.length,i+4);j++) cands.push(words.slice(i,j).join(''));
+  const W = words.length>10 ? words.slice(-6) : words;
+  if(W!==words) cands.push(W.join(''));
+  for(let i=0;i<W.length;i++) for(let j=i+1;j<=Math.min(W.length,i+4);j++) cands.push(W.slice(i,j).join(''));
   return answers.some(a=>{const y=norm(a).replace(/ /g,''); const tol = y.length>=8?2:(y.length>=5?1:0);
     return cands.some(x=>x===y||(Math.abs(x.length-y.length)<=tol&&lev(x,y)<=tol));});
 }
@@ -512,14 +526,14 @@ function beep(freq,dur,type='sine',vol=.15,delay=0){
   try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)();
     const o=actx.createOscillator(),g=actx.createGain(); o.type=type;o.frequency.value=freq;
     const t=actx.currentTime+delay; g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.001,t+dur);
-    o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+dur);}catch(e){}
+    o.connect(g);g.connect(OUT());o.start(t);o.stop(t+dur);}catch(e){}
 }
 /* sonidos suaves: nada que asuste */
 function softTone(f,t0,d,vol,type='sine',f2=null){
   const o=actx.createOscillator(),g=actx.createGain(); o.type=type; o.frequency.setValueAtTime(f,t0);
   if(f2) o.frequency.exponentialRampToValueAtTime(f2,t0+d);
   g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(vol,t0+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t0+d);
-  o.connect(g); g.connect(actx.destination); o.start(t0); o.stop(t0+d+0.05);
+  o.connect(g); g.connect(OUT()); o.start(t0); o.stop(t0+d+0.05);
 }
 let noiseBuf=null;
 function getNoise(){ if(noiseBuf) return noiseBuf; const n=actx.sampleRate; noiseBuf=actx.createBuffer(1,n,n); const d=noiseBuf.getChannelData(0); for(let i=0;i<n;i++) d[i]=Math.random()*2-1; return noiseBuf; }
@@ -531,7 +545,7 @@ const sfx={
     const s=actx.createBufferSource(); s.buffer=getNoise(); const f=actx.createBiquadFilter(); f.type='bandpass'; f.Q.value=1.2;
     f.frequency.setValueAtTime(500,t); f.frequency.exponentialRampToValueAtTime(2600,t+.35);
     const g=actx.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(.09,t+.08); g.gain.exponentialRampToValueAtTime(0.0001,t+.4);
-    s.connect(f); f.connect(g); g.connect(actx.destination); s.start(t); s.stop(t+.45); softTone(660,t+.12,.3,.025); },
+    s.connect(f); f.connect(g); g.connect(OUT()); s.start(t); s.stop(t+.45); softTone(660,t+.12,.3,.025); },
   tick(){ if(!sfxOn()) return; softTone(880,actx.currentTime,.07,.025); },
   fanfare(){ if(!sfxOn()) return; const t=actx.currentTime; [523,659,784,1047].forEach((f,i)=>softTone(f,t+i*.14,.5,.06,'triangle')); }
 };
@@ -563,12 +577,12 @@ const MUS={on:false,bus:null,gain:null,timer:null,next:0,step:0};
 const PROG=[[48,[64,67,72]],[45,[64,69,72]],[41,[65,69,72]],[43,[62,67,71]]]; // Do – La menor – Fa – Sol
 const mtof=m=>440*Math.pow(2,(m-69)/12);
 const EIGHTH=60/104/2;
-function musicLevel(){ if(!MUS.on||!actx) return; const v = (talking||listening) ? 0.10 : 0.32; MUS.gain.gain.setTargetAtTime(v,actx.currentTime,0.25); }
+function musicLevel(){ if(!MUS.on||!actx) return; const v = (talking||listening) ? 0.06 : 0.22; MUS.gain.gain.setTargetAtTime(v,actx.currentTime,0.25); }
 function musicStart(){
   if(MUS.on || !$('optMusic').checked || !ensureCtx()) return;
   MUS.on=true; MUS.gain=actx.createGain(); MUS.gain.gain.value=0.0001;
   MUS.bus=actx.createBiquadFilter(); MUS.bus.type='lowpass'; MUS.bus.frequency.value=3200;
-  MUS.bus.connect(MUS.gain); MUS.gain.connect(actx.destination);
+  MUS.bus.connect(MUS.gain); MUS.gain.connect(OUT());
   MUS.next=actx.currentTime+0.15; MUS.step=0; MUS.timer=setInterval(musicTick,90); musicLevel(); paintMusic();
 }
 function musicStop(){ if(!MUS.on) return; MUS.on=false; clearInterval(MUS.timer); const g=MUS.gain;
@@ -608,6 +622,11 @@ function say(text,cb){
   }catch(e){fin()}
 }
 let curSrc=null; const CLIPS={};
+/* salida general con compresor suave: evita que se sature cuando suenan voz, música y efectos juntos */
+let outNode=null;
+function OUT(){ if(outNode) return outNode;
+  const comp=actx.createDynamicsCompressor(); comp.threshold.value=-14; comp.knee.value=10; comp.ratio.value=4; comp.attack.value=0.005; comp.release.value=0.2;
+  const g=actx.createGain(); g.gain.value=0.9; g.connect(comp); comp.connect(actx.destination); outNode=g; return g; }
 function ensureCtx(){ try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} return actx; }
 async function loadClips(){
   if(!ensureCtx()) return;
@@ -625,7 +644,7 @@ function playClip(k,cb){
   const tok=++speechGen;
   let done=false; const fin=()=>{ if(done) return; done=true; if(tok!==speechGen) return; avatarsTalk(false); cb&&cb(); };
   if(!$('optVoice').checked){ setTimeout(fin,cb?350:0); return; }
-  try{ actx.resume&&actx.resume(); stopClip(); const s=actx.createBufferSource(); s.buffer=b; s.connect(actx.destination);
+  try{ actx.resume&&actx.resume(); stopClip(); const s=actx.createBufferSource(); s.buffer=b; s.connect(OUT());
     s.onended=fin; curSrc=s; avatarsTalk(true); s.start(); setTimeout(fin,(b.duration+1.5)*1000);
   }catch(e){ say(txt(k),cb); }
 }
@@ -656,9 +675,13 @@ function buildRec(){
   r.onresult=e=>{
     let txt='';
     for(let i=e.resultIndex;i<e.results.length;i++){
-      const res=e.results[i]; txt+=res[0].transcript;
+      const res=e.results[i];
+      if(recMode==='game' && isEcho(res[0].transcript)) continue;     // es Anabela que se escucha por el parlante
+      txt+=res[0].transcript;
       if(res.isFinal){ recGot=true; for(let k=0;k<res.length;k++) recAlts.push(res[k].transcript); }
     }
+    if(recMode==='game' && !txt.trim()) return;
+    if(recMode==='game' && talking) shutUp();                          // la interrumpieron: Anabela se calla
     if(txt.trim()) recInterim=txt.trim();
     if(recMode==='test') $('micTestOut').textContent='Escuché: «'+txt.trim()+'»';
     else $('ansIn').value=txt.trim();
@@ -687,14 +710,14 @@ function buildRec(){
 function startRec(mode){
   if(!SR||micDenied) return false;
   recMode=mode||'game';
-  try{ if(!REC) REC=buildRec(); shutUp(); REC.start(); return true; }catch(e){ return false; }
+  try{ if(!REC) REC=buildRec(); if(recMode!=='game'||!talking||!$('optBarge').checked) shutUp(); REC.start(); return true; }catch(e){ return false; }
 }
 function stopRec(){ try{ if(REC&&listening) REC.abort(); }catch(e){} listening=false; paintMic(); }
 
 $('btnMic').onclick=()=>{
   if(!G||$('btnAnswer').disabled) return;
   if(listening){ try{REC.stop()}catch(e){} return; }
-  $('ansIn').value='';
+  $('ansIn').value=''; shutUp();
   if(!startRec('game')) startKbVoice();
 };
 $('btnMicTest').onclick=()=>{
@@ -744,108 +767,139 @@ function renderPlayersEdit(){
 $('btnAddP').onclick=()=>{ if(players.length<5){ players.push({name:'Jugador '+(players.length+1),f:false}); savePlayers(); renderPlayersEdit(); renderWelcome(); } };
 $('btnDelP').onclick=()=>{ if(players.length>2){ players.pop(); savePlayers(); renderPlayersEdit(); renderWelcome(); } };
 const listNames = () => players.map(p=>p.name).join(', ').replace(/, ([^,]*)$/,' y $1');
-function renderWelcome(){ $('welcomeTxt').textContent = `¡Buenas noches y bienvenidos a ${GAME_NAME}! Soy Anabela, su conductora. Esta noche compiten ${listNames()}. Cada uno tiene su rosco, quince segundos por pregunta y tres comodines. ¿Están listos? ¡Que empiece el show!`; }
+function renderWelcome(){ $('welcomeTxt').textContent = `¡Bienvenidos! Yo soy Anabela, la conductora de La Vuelta de Anabela. Estamos acá para jugar, ganar y, sobre todo, disfrutar. ¡Que empiece el show!`; return; `¡Buenas noches y bienvenidos a ${GAME_NAME}! Soy Anabela, su conductora. Esta noche compiten ${listNames()}. Cada uno tiene su rosco, quince segundos por pregunta y tres comodines. ¿Están listos? ¡Que empiece el show!`; }
 renderWelcome();
 renderPlayersEdit();
 
-/* ================= ARMAR PARTIDA ================= */
+/* ================= ARMAR PARTIDA =================
+   Primera vuelta: cada jugador hace su rosco de la A a la Z, uno después del otro.
+   Segunda vuelta: cada jugador, en el mismo orden, vuelve a las letras que pasó o erró.
+   Cada jugador tiene un reloj total que solo corre durante su turno. */
+const QTIME = () => +$('optQTime').value || 15;
+const TOTAL = () => +$('optTotal').value || 180;
 function newGame(){
-  // reparte preguntas distintas a cada jugador; las sobrantes quedan para "cambiar pregunta"
   const deck={}; LETTERS.forEach(L=>deck[L]=shuffle(BANK[L].map(q=>({t:q[0],q:q[1],a:q[2]}))));
-  S={ idx:0, deck, results:[], spare:{} };
-  S.roscos = players.map(()=>{const r={};LETTERS.forEach(L=>r[L]=deck[L].pop());return r;});
-  LETTERS.forEach(L=>S.spare[L]=deck[L]); // lo que sobra
+  S={ idx:0, round:1, spare:{} };
+  S.P = players.map(p=>{ const q={}, st={}; LETTERS.forEach(L=>{ q[L]=deck[L].pop(); st[L]=''; });
+    return { name:p.name, f:p.f, q, state:st, left:TOTAL(), com:{hint:true,time:true,swap:true} }; });
+  LETTERS.forEach(L=>S.spare[L]=deck[L]);
 }
+const pendingOf = ps => LETTERS.filter(L=>ps.state[L]==='pass'||ps.state[L]==='bad');
+const okOf  = ps => LETTERS.filter(L=>ps.state[L]==='ok').length;
+const badOf = ps => LETTERS.filter(L=>ps.state[L]==='bad').length;
+const fmt = s => { s=Math.max(0,Math.ceil(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
+function eligible(i){ const ps=S.P[i]; return S.round===1 || (ps.left>0 && pendingOf(ps).length>0); }
 
 /* ================= PRESENTAR JUGADOR ================= */
 function introPlayer(){
-  const p=players[S.idx];
-  $('introNum').textContent = `Participante ${S.idx+1} de ${players.length}`;
-  $('introName').textContent = p.name;
+  const ps=S.P[S.idx];
+  $('introNum').textContent = `${S.round===1?'Primera':'Segunda'} vuelta · Participante ${S.idx+1} de ${S.P.length}`;
+  $('introName').textContent = ps.name;
   $('introName').style.color = COLORS[S.idx];
-  const prep = p.f?'Preparada':'Preparado';
-  const clips = S.idx===0 ? ['F01','F02'] : [pick(['F03','F04'])];
-  $('introTxt').textContent = clips.map(txt).join(' ');
+  const prep = ps.f?'Preparada':'Preparado';
+  let clips;
+  if(S.round===1) clips = S.idx===0 ? ['F01','F02'] : [pick(['F03','F04'])];
+  else clips = S.firstOfRound ? ['F16',pick(['F03','F04'])] : [pick(['F03','F04'])];
+  S.firstOfRound=false;
+  const extra = S.round===2 ? ` Le quedan ${pendingOf(ps).length} letras y ${fmt(ps.left)} de reloj.` : ` Tiene ${fmt(ps.left)} para todo el rosco.`;
+  $('introTxt').textContent = clips.map(txt).join(' ') + extra;
   $('btnReady').textContent = `¡${prep}! ▶`;
   show('sIntro'); seq(clips);
 }
-$('btnReady').onclick=()=>{ shutUp(); ensureCtx()&&actx.resume&&actx.resume(); startRosco(); };
+$('btnReady').onclick=()=>{ shutUp(); ensureCtx()&&actx.resume&&actx.resume(); startTurn(); };
 
 /* ================= JUEGO ================= */
-let G=null, timerId=null;
+let G=null, timerId=null, echoText='';
 function buildRosco(){
   const box=$('rosco'); box.querySelectorAll('.letter').forEach(e=>e.remove());
   LETTERS.forEach((L,i)=>{const ang=(i/LETTERS.length)*2*Math.PI-Math.PI/2;
     const d=document.createElement('div');d.className='letter';d.id='L_'+L;d.textContent=L;
     d.style.left=(50+44*Math.cos(ang))+'%';d.style.top=(50+44*Math.sin(ang))+'%';box.appendChild(d);});
 }
-function startRosco(){
-  const p=players[S.idx];
-  G={ q:S.roscos[S.idx], state:{}, queue:[...LETTERS], pending:[], vuelta:1, cur:null, time:15,
-      ok:0,bad:0, com:{hint:true,time:true,swap:true}, busy:false, paused:false, hintShown:false };
-  LETTERS.forEach(L=>G.state[L]='');
-  buildRosco();
-  $('gWho').textContent=p.name; $('gWho').style.color=COLORS[S.idx];
-  ['cHint','cTime','cSwap'].forEach(id=>$(id).disabled=false);
-  show('sGame'); updateTop();
-  setTimeout(nextLetter,900);
+function paintLetter(L){ const st=G.ps.state[L], el=$('L_'+L);
+  el.className='letter'+(st==='ok'?' ok':st==='bad'?' bad':st==='pass'?' pass':''); el.style.opacity = st==='none'?.35:1; }
+function startTurn(){
+  const ps=S.P[S.idx];
+  G={ ps, q:ps.q, com:ps.com, queue: S.round===1 ? [...LETTERS] : pendingOf(ps), cur:null, time:QTIME(),
+      busy:true, paused:false, live:false };
+  buildRosco(); LETTERS.forEach(paintLetter);
+  $('gWho').textContent=ps.name; $('gWho').style.color=COLORS[S.idx];
+  show('sGame'); updateTop(); drawTime();
+  setTimeout(()=>nextLetter(),700);
 }
 function updateTop(){
-  $('gOk').textContent='✓ '+G.ok; $('gBad').textContent='✗ '+G.bad;
-  $('gPass').textContent='↻ '+LETTERS.filter(L=>G.state[L]==='pass').length;
-  $('gVuelta').textContent = G.vuelta===1?'Primera vuelta':'Segunda vuelta · última oportunidad';
+  const ps=G.ps;
+  $('gOk').textContent='✓ '+okOf(ps); $('gBad').textContent='✗ '+badOf(ps);
+  $('gPass').textContent='↻ '+LETTERS.filter(L=>ps.state[L]==='pass').length;
+  $('gVuelta').textContent = S.round===1?'Primera vuelta':'Segunda vuelta · última oportunidad';
+  $('gLeft').textContent='⏱ '+fmt(ps.left); $('gLeft').classList.toggle('r', ps.left<=20);
 }
+/* pre = frase de veredicto de la letra anterior; después arranca la pregunta nueva */
 function nextLetter(pre=''){
   clearInterval(timerId);
-  if(G.queue.length===0){
-    if(G.vuelta===1 && G.pending.length){
-      G.vuelta=2; G.queue=G.pending; G.pending=[]; updateTop();
-      const n=G.queue.length;
-      flash('2ª VUELTA','#7a55ff'); setQ('',`¡Segunda vuelta! Quedan ${n} letra${n>1?'s':''} pendiente${n>1?'s':''}. ¡Última oportunidad!`);
-      seq([pre,'F16'],()=>setTimeout(()=>{ if(G&&!G.paused&&!G.cur) nextLetter(); },150)); return;
-    }
-    return endRosco(pre);
-  }
-  G.cur=G.queue.shift(); G.hintShown=false; $('gHint').textContent=''; stopKbVoice();
+  if(!G) return;
+  if(G.queue.length===0 || G.ps.left<=0){ return endTurn(pre); }
+  G.cur=G.queue.shift(); $('gHint').textContent=''; stopKbVoice();
   document.querySelectorAll('.letter').forEach(e=>e.classList.remove('cur'));
   $('L_'+G.cur).classList.add('cur');
   const q=G.q[G.cur];
   const tipo = q.t==='E'?`Empieza con ${G.cur}`:`Contiene la ${G.cur}`;
   setQ(tipo,q.q); $('gCurL').textContent='Letra '+G.cur;
-  $('ansIn').value=''; $('btnPass').textContent = G.vuelta===1?'¡Paso! 👉':'Paso (se pierde)';
-  updateTop(); setButtons(false);
-  G.time=15; drawTime();
-  G.busy=true;
-  seq([pre,`${tipo}. ${q.q}`], ()=>{ if(!G||G.paused) return; G.busy=false; setButtons(true); startTimer(); handsFree(); });
+  $('ansIn').value=''; $('btnPass').textContent = S.round===1?'¡Paso! 👉':'Paso (se pierde)';
+  updateTop(); setButtons(false); G.time=QTIME(); drawTime(); G.busy=true;
+  if(pre) playClip(pre, askQuestion); else askQuestion();
+}
+/* la pregunta: el reloj arranca YA, mientras Anabela lee, y se puede contestar encima */
+function askQuestion(){
+  if(!G||G.paused||!G.cur) return;
+  const q=G.q[G.cur]; const tipo = q.t==='E'?`Empieza con ${G.cur}`:`Contiene la ${G.cur}`;
+  G.busy=false; setButtons(true); startTimer();
+  echoText = `${tipo} ${q.q}`;
+  say(`${tipo}. ${q.q}`, ()=>{ if(G&&G.cur&&!G.busy&&!G.paused&&!listening) handsFree(); });
+  if($('optBarge').checked) handsFree();
 }
 function setQ(tipo,txt){ $('gType').style.display=tipo?'inline-block':'none'; $('gType').textContent=tipo; $('gQ').textContent=txt; }
 function setButtons(on){ ['btnAnswer','btnPass','btnMic'].forEach(id=>$(id).disabled=!on);
   $('cHint').disabled=!on||!G.com.hint; $('cTime').disabled=!on||!G.com.time; $('cSwap').disabled=!on||!G.com.swap||!S.spare[G.cur]||!S.spare[G.cur].length; }
-function handsFree(){ if($('optHands').checked && SR && !micDenied){ $('ansIn').value=''; if(!startRec('game')) focusIn(); } else focusIn(); }
-function focusIn(){ try{$('ansIn').focus({preventScroll:true})}catch(e){} }
+function handsFree(){ if($('optHands').checked && SR && !micDenied){ if(!listening){ $('ansIn').value=''; if(!startRec('game')) focusIn(); } } else focusIn(); }
+function focusIn(){ if(talking) return; try{$('ansIn').focus({preventScroll:true})}catch(e){} }
 function startTimer(){
   clearInterval(timerId);
-  timerId=setInterval(()=>{ if(G.paused) return; G.time--; drawTime(); if(G.time<=5&&G.time>0) sfx.tick();
+  timerId=setInterval(()=>{ if(!G||G.paused||G.busy) return;
+    G.time--; G.ps.left--; drawTime(); updateTop();
+    if(G.ps.left<=0){ clearInterval(timerId); return resolve('total'); }
+    if(G.time<=5&&G.time>0) sfx.tick();
     if(G.time<=0){ clearInterval(timerId); resolve('time'); } },1000);
 }
 function drawTime(){
   $('gTimer').textContent=Math.max(0,G.time); $('gTimer').classList.toggle('warn',G.time<=5);
-  const max = Math.max(15,G.time); $('ringFg').style.strokeDashoffset = 295.3*(1-Math.max(0,G.time)/max);
+  const max = Math.max(QTIME(),G.time); $('ringFg').style.strokeDashoffset = 295.3*(1-Math.max(0,G.time)/max);
   $('ringFg').style.stroke = G.time<=5?'#ff4057':'#ffd84a';
 }
+/* lo que el micrófono escucha de la propia Anabela (el parlante) no cuenta como respuesta */
+function isEcho(t){
+  if(!talking) return false;
+  const w=norm(t).split(' ').filter(x=>x.length>2); if(!w.length) return true;
+  const qw=new Set(norm(echoText).split(' '));
+  return w.filter(x=>qw.has(x)).length/w.length >= 0.5;
+}
 function resolve(kind,alts){
-  if(G.busy && kind!=='time') return;
+  if(!G||!G.cur) return;
+  if(G.busy && kind!=='time' && kind!=='total') return;
   clearInterval(timerId); G.busy=true; setButtons(false); shutUp();
-  stopRec();
-  stopKbVoice();
-  const L=G.cur, el=$('L_'+L); let msg;
+  stopRec(); stopKbVoice();
+  const L=G.cur, ps=G.ps; let msg;
   if(kind==='answer'){
-    if((alts&&alts.length?alts:[$('ansIn').value]).some(t=>isCorrect(t,G.q[L].a))){ G.ok++; G.state[L]='ok'; el.className='letter ok'; sfx.ok(); flash('¡CORRECTO!','#20c96b'); msg=pick(P.ok); }
-    else { G.bad++; G.state[L]='bad'; el.className='letter bad'; sfx.bad(); flash('INCORRECTO','#ff4057'); msg=pick(P.bad); }
+    if((alts&&alts.length?alts:[$('ansIn').value]).some(t=>isCorrect(t,G.q[L].a))){ ps.state[L]='ok'; sfx.ok(); flash('¡CORRECTO!','#20c96b'); msg=pick(P.ok); }
+    else { ps.state[L]='bad'; sfx.bad(); flash('INCORRECTO','#ff4057'); msg=pick(P.bad); }
   } else if(kind==='pass'){
-    if(G.vuelta===1){ G.pending.push(L); G.state[L]='pass'; el.className='letter pass'; sfx.pass(); flash('¡PASO!','#ff8a1f'); msg=pick(P.pass); }
-    else { G.state[L]='none'; el.className='letter'; el.style.opacity=.35; sfx.pass(); flash('¡PASO!','#ff8a1f'); msg='F13'; }
-  } else { G.bad++; G.state[L]='bad'; el.className='letter bad'; sfx.bad(); flash('¡TIEMPO!','#ff4057'); msg=pick(P.time); }
+    if(S.round===1){ ps.state[L]='pass'; sfx.pass(); flash('¡PASO!','#ff8a1f'); msg=pick(P.pass); }
+    else { ps.state[L]='none'; sfx.pass(); flash('¡PASO!','#ff8a1f'); msg='F13'; }
+  } else if(kind==='total'){
+    if(ps.state[L]==='') ps.state[L]='none';
+    sfx.bad(); flash('¡SE ACABÓ TU RELOJ!','#ff4057'); msg='F14';
+  } else { ps.state[L]='bad'; sfx.bad(); flash('¡TIEMPO!','#ff4057'); msg=pick(P.time); }
+  paintLetter(L);
   G.cur=null; updateTop(); setQ('',txt(msg));
   setTimeout(()=>{ if(G&&!G.paused){ nextLetter(msg); } else if(G){ G.resumeNext=true; G.pre=msg; } },650);
 }
@@ -854,15 +908,15 @@ function flash(t,c){ const f=$('flash'); f.innerHTML=`<div style="background:${c
 $('ansForm').onsubmit=e=>{e.preventDefault(); if(!$('btnAnswer').disabled) resolve('answer');};
 $('btnAnswer').onclick=()=>resolve('answer');
 $('btnPass').onclick=()=>resolve('pass');
-$('cHint').onclick=()=>{ if(!G.com.hint) return; G.com.hint=false; $('cHint').disabled=true;
+$('cHint').onclick=()=>{ if(!G||!G.com.hint) return; G.com.hint=false; $('cHint').disabled=true;
   const a=G.q[G.cur].a[0]; const shown=a.split('').map((ch,i)=>ch===' '?'  ':(i<2?ch.toUpperCase():'_')).join(' ');
   $('gHint').textContent=`💡 ${shown}  (${a.replace(/ /g,'').length} letras)`; stopRec(); playClip('F17',resumeListen); };
-$('cTime').onclick=()=>{ if(!G.com.time) return; G.com.time=false; $('cTime').disabled=true; G.time+=10; drawTime(); stopRec(); playClip('F18',resumeListen); };
-$('cSwap').onclick=()=>{ const sp=S.spare[G.cur]; if(!G.com.swap||!sp||!sp.length) return; stopRec();
+$('cTime').onclick=()=>{ if(!G||!G.com.time) return; G.com.time=false; $('cTime').disabled=true; G.time+=10; G.ps.left+=10; drawTime(); updateTop(); stopRec(); playClip('F18',resumeListen); };
+$('cSwap').onclick=()=>{ const sp=S.spare[G.cur]; if(!G||!G.com.swap||!sp||!sp.length) return; stopRec();
   G.com.swap=false; clearInterval(timerId); setButtons(false); G.q[G.cur]=sp.pop();
   const q=G.q[G.cur]; const tipo=q.t==='E'?`Empieza con ${G.cur}`:`Contiene la ${G.cur}`;
-  setQ(tipo,q.q); $('gHint').textContent=''; G.time=15; drawTime(); G.busy=true;
-  seq(['F19',`${tipo}. ${q.q}`],()=>{ if(G.paused) return; G.busy=false; setButtons(true); startTimer(); handsFree(); }); };
+  setQ(tipo,q.q); $('gHint').textContent=''; G.time=QTIME(); drawTime(); G.busy=true;
+  playClip('F19', askQuestion); };
 
 /* altavoz y repetir */
 function paintSpeaker(){ $('btnSpeaker').textContent = $('optVoice').checked ? '🔊 Altavoz: ON' : '🔇 Altavoz: OFF'; }
@@ -871,47 +925,60 @@ $('optVoice').addEventListener('change',paintSpeaker);
 $('btnMusic').onclick=()=>{ if(MUS.on){ musicStop(); $('optMusic').checked=false; } else { $('optMusic').checked=true; musicStart(); } paintMusic(); };
 $('btnRepeat').onclick=()=>{ if(!G||!G.cur||G.busy) return; const q=G.q[G.cur];
   if(!$('optVoice').checked){ $('optVoice').checked=true; paintSpeaker(); }
-  stopRec(); say(`${q.t==='E'?'Empieza con '+G.cur:'Contiene la '+G.cur}. ${q.q}`,resumeListen); };
+  const t=`${q.t==='E'?'Empieza con '+G.cur:'Contiene la '+G.cur}. ${q.q}`; echoText=t; say(t,resumeListen); };
 function resumeListen(){ if(G&&G.cur&&!G.busy&&!G.paused) handsFree(); }
 /* pausa */
 $('btnPause').onclick=()=>{ if(!G) return; G.paused=true; shutUp(); stopRec(); $('mPause').classList.add('on'); playClip('F26'); };
 $('btnResume').onclick=()=>{ shutUp(); $('mPause').classList.remove('on'); G.paused=false;
   if(G.resumeNext || !G.cur){ G.resumeNext=false; const pr=G.pre||''; G.pre=''; nextLetter(pr); return; }
-  if(G.busy){ G.busy=false; setButtons(true); startTimer(); handsFree(); } };
+  if(G.busy) askQuestion(); else { setButtons(true); handsFree(); } };
 $('btnQuit').onclick=()=>{ $('mPause').classList.remove('on'); clearInterval(timerId); shutUp(); stopRec(); musicStop(); G=null; show('sWelcome'); };
 
-/* ================= FIN DE ROSCO ================= */
-function endRosco(pre=''){
-  clearInterval(timerId);
-  const p=players[S.idx]; const no=LETTERS.length-G.ok-G.bad;
-  S.results[S.idx]={name:p.name,ok:G.ok,bad:G.bad,no,color:COLORS[S.idx]};
-  $('reName').textContent=p.name; $('reName').style.color=COLORS[S.idx];
-  $('rePts').textContent=G.ok; $('reOk').textContent=G.ok; $('reBad').textContent=G.bad; $('reNo').textContent=no;
-  const pct=G.ok/LETTERS.length;
+/* ================= FIN DE CADA TURNO ================= */
+function endTurn(pre=''){
+  clearInterval(timerId); stopRec(); shutUp();
+  const ps=G.ps, ok=okOf(ps), bad=badOf(ps), pend=pendingOf(ps).length;
+  $('reTitle').textContent = S.round===1 ? '¡FIN DE LA PRIMERA VUELTA!' : '¡FIN DEL ROSCO!';
+  $('reName').textContent=ps.name; $('reName').style.color=COLORS[S.idx];
+  $('rePts').textContent=ok; $('reOk').textContent=ok; $('reBad').textContent=bad;
+  $('reNo').textContent = S.round===1 ? LETTERS.filter(L=>ps.state[L]==='pass').length : LETTERS.length-ok-bad;
+  $('reNoLbl').textContent = S.round===1 ? 'pasadas' : 'sin responder';
+  const pct=ok/LETTERS.length;
   const ck = pct>=.85?'F20':pct>=.65?'F21':pct>=.4?'F22':'F23';
-  const t=`${txt(ck)} ${p.name} hizo ${G.ok} punto${G.ok===1?'':'s'}.`;
+  let t=`${txt(ck)} ${ps.name} lleva ${ok} punto${ok===1?'':'s'}`;
+  t += S.round===1 ? (pend&&ps.left>0 ? ` y le quedan ${pend} letras para la segunda vuelta, con ${fmt(ps.left)} de reloj.` : '.') : '.';
   $('reTxt').textContent=t; $('reTable').innerHTML=tableHTML(false);
-  const last = S.idx===players.length-1;
-  $('btnNext').textContent = last?'🏆 Ver la gran final':`▶ Siguiente: ${players[S.idx+1].name}`;
+  // ¿quién sigue?
+  let nxt=S.idx+1; while(nxt<S.P.length && !eligible(nxt)) nxt++;
+  S.nextIdx=nxt;
+  if(nxt<S.P.length) $('btnNext').textContent=`▶ Siguiente: ${S.P[nxt].name}`;
+  else if(S.round===1){ const any=S.P.some((_,i)=>{ const p=S.P[i]; return p.left>0&&pendingOf(p).length; });
+    $('btnNext').textContent = any ? '▶ ¡A la segunda vuelta!' : '🏆 Ver la gran final'; }
+  else $('btnNext').textContent='🏆 Ver la gran final';
   show('sRoscoEnd'); sfx.fanfare(); seq([pre,ck]); G=null;
 }
-$('btnNext').onclick=()=>{ shutUp(); S.idx++; if(S.idx<players.length) introPlayer(); else finale(); };
+$('btnNext').onclick=()=>{ shutUp();
+  if(S.nextIdx<S.P.length){ S.idx=S.nextIdx; return introPlayer(); }
+  if(S.round===1){ S.round=2; S.firstOfRound=true; let i=0; while(i<S.P.length && !eligible(i)) i++;
+    if(i<S.P.length){ S.idx=i; return introPlayer(); } }
+  finale();
+};
 
-function ranking(){ return S.results.filter(Boolean).slice().sort((a,b)=>b.ok-a.ok||a.bad-b.bad); }
+function ranking(){ return S.P.map((p,i)=>({name:p.name,ok:okOf(p),bad:badOf(p),no:LETTERS.length-okOf(p)-badOf(p),left:p.left,color:COLORS[i]}))
+  .sort((a,b)=>b.ok-a.ok||a.bad-b.bad||b.left-a.left); }
 function tableHTML(final){
   const r=ranking(); let pos=0,prev=null;
-  const rows=r.map((x,i)=>{ const key=x.ok+'-'+x.bad; if(key!==prev){pos=i+1;prev=key;}
+  const rows=r.map((x,i)=>{ const key=x.ok+'-'+x.bad+(final?'-'+x.left:''); if(key!==prev){pos=i+1;prev=key;}
     const medal=final?(['🥇','🥈','🥉'][pos-1]||'🎖️'):pos+'º';
-    return `<tr class="${final&&pos===1?'win':''}"><td class="medal">${medal}</td><td style="color:${final&&pos===1?'':x.color}">${x.name}</td><td class="n">${x.ok}</td><td class="n">${x.bad}</td><td class="n">${x.no}</td></tr>`;}).join('');
-  return `<h3 style="margin-bottom:6px">${final?'📊 Tabla final':'📊 Tabla parcial'}</h3><table><tr><th></th><th>Jugador</th><th style="text-align:center">Pts</th><th style="text-align:center">✗</th><th style="text-align:center">—</th></tr>${rows}</table>
-  <p style="font-size:12px;color:var(--muted);margin-top:8px">Pts = aciertos · ✗ = errores · — = sin responder. Desempate: menos errores.</p>`;
+    return `<tr class="${final&&pos===1?'win':''}"><td class="medal">${medal}</td><td style="color:${final&&pos===1?'':x.color}">${esc(x.name)}</td><td class="n">${x.ok}</td><td class="n">${x.bad}</td><td class="n">${fmt(x.left)}</td></tr>`;}).join('');
+  return `<h3 style="margin-bottom:6px">${final?'📊 Tabla final':'📊 Tabla parcial'}</h3><table><tr><th></th><th>Jugador</th><th style="text-align:center">Pts</th><th style="text-align:center">✗</th><th style="text-align:center">⏱</th></tr>${rows}</table>
+  <p style="font-size:12px;color:var(--muted);margin-top:8px">Pts = aciertos · ✗ = errores · ⏱ = reloj que le quedó. Desempate: menos errores y después más tiempo.</p>`;
 }
 
 /* ================= GRAN FINAL ================= */
 function finale(){
-  const r=ranking(); const top=r.filter(x=>x.ok===r[0].ok&&x.bad===r[0].bad);
-  let t,w;
-  let ck;
+  const r=ranking(); const top=r.filter(x=>x.ok===r[0].ok&&x.bad===r[0].bad&&x.left===r[0].left);
+  let t,w,ck;
   if(top.length===1){ ck='F24'; w=`🏆 ¡${top[0].name}!`; t=`${txt(ck)} Con ${top[0].ok} puntos: ¡${top[0].name}!`; }
   else { ck='F25'; const n=top.map(x=>x.name).join(' y '); w=`🏆 ¡Empate: ${n}!`; t=`${txt(ck)} Empatan con ${top[0].ok} puntos: ¡${n}!`; }
   $('fTxt').textContent=t; $('fWinner').textContent=w; $('fTable').innerHTML=tableHTML(true);
